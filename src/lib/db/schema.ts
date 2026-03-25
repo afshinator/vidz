@@ -15,7 +15,7 @@ export const channels = pgTable('channels', {
 
 export const videos = pgTable('videos', {
   id: text('id').primaryKey(),
-  channelId: text('channel_id').references(() => channels.id),
+  channelId: text('channel_id').references(() => channels.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   description: text('description'),
   thumbnail: text('thumbnail'),
@@ -29,7 +29,7 @@ export const videos = pgTable('videos', {
 }));
 
 export const watched = pgTable('watched', {
-  videoId: text('video_id').references(() => videos.id),
+  videoId: text('video_id').references(() => videos.id, { onDelete: 'cascade' }),
   watchedAt: timestamp('watched_at').defaultNow(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.videoId] }),
@@ -64,8 +64,8 @@ export const tags = pgTable('tags', {
 }));
 
 export const videoTags = pgTable('video_tags', {
-  videoId: text('video_id').references(() => videos.id),
-  tagId: text('tag_id').references(() => tags.id),
+  videoId: text('video_id').references(() => videos.id, { onDelete: 'cascade' }),
+  tagId: text('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
 }, (table) => ({
   pk: primaryKey({ columns: [table.videoId, table.tagId] }),
   videoIdIdx: index('video_tags_video_id_idx').on(table.videoId),
@@ -73,8 +73,8 @@ export const videoTags = pgTable('video_tags', {
 }));
 
 export const channelTags = pgTable('channel_tags', {
-  channelId: text('channel_id').references(() => channels.id),
-  tagId: text('tag_id').references(() => tags.id),
+  channelId: text('channel_id').references(() => channels.id, { onDelete: 'cascade' }),
+  tagId: text('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
 }, (table) => ({
   pk: primaryKey({ columns: [table.channelId, table.tagId] }),
   channelIdIdx: index('channel_tags_channel_id_idx').on(table.channelId),
