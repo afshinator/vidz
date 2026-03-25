@@ -1,4 +1,4 @@
-import { eq, desc, and, not, exists, sql, isNull } from 'drizzle-orm';
+import { eq, desc, and, sql, isNull } from 'drizzle-orm';
 import { getDb } from './client';
 import {
   channels,
@@ -54,16 +54,8 @@ export function getUnwatchedVideos(userId: string, limit = 50): Promise<(Video &
     })
     .from(videos)
     .innerJoin(channels, eq(videos.channelId, channels.id))
-    .where(
-      and(
-        eq(channels.userId, userId),
-        not(
-          exists(
-            getDb().select().from(watched).where(eq(watched.videoId, videos.id))
-          )
-        )
-      )
-    )
+    .leftJoin(watched, eq(watched.videoId, videos.id))
+    .where(and(eq(channels.userId, userId), isNull(watched.videoId)))
     .orderBy(desc(videos.publishedAt))
     .limit(limit);
 }

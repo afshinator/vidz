@@ -48,6 +48,7 @@ export const topics = pgTable('topics', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('topics_user_id_idx').on(table.userId),
+  userIdDeletedAtIdx: index('topics_user_id_deleted_at_idx').on(table.userId, table.deletedAt),
 }));
 
 export const tags = pgTable('tags', {
@@ -59,6 +60,7 @@ export const tags = pgTable('tags', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('tags_user_id_idx').on(table.userId),
+  userIdDeletedAtIdx: index('tags_user_id_deleted_at_idx').on(table.userId, table.deletedAt),
 }));
 
 export const videoTags = pgTable('video_tags', {
@@ -75,6 +77,8 @@ export const channelTags = pgTable('channel_tags', {
   tagId: text('tag_id').references(() => tags.id),
 }, (table) => ({
   pk: primaryKey({ columns: [table.channelId, table.tagId] }),
+  channelIdIdx: index('channel_tags_channel_id_idx').on(table.channelId),
+  tagIdIdx: index('channel_tags_tag_id_idx').on(table.tagId),
 }));
 
 export const syncState = pgTable('sync_state', {
