@@ -42,12 +42,12 @@ export async function updateTopicAction(
     throw new Error('Unauthorized');
   }
   
-  const topic = await getTopicById(topicId);
-  if (!topic || topic.userId !== session.user.id) {
+  const topic = await getTopicById(topicId, session.user.id);
+  if (!topic) {
     throw new Error('Not found');
   }
   
-  await updateTopic(topicId, {
+  await updateTopic(topicId, session.user.id, {
     name: data.name,
     keywords: data.keywords,
     categoryId: data.categoryId,
@@ -64,12 +64,12 @@ export async function deleteTopicAction(topicId: string) {
     throw new Error('Unauthorized');
   }
   
-  const topic = await getTopicById(topicId);
-  if (!topic || topic.userId !== session.user.id) {
+  const topic = await getTopicById(topicId, session.user.id);
+  if (!topic) {
     throw new Error('Not found');
   }
   
-  await deleteTopic(topicId);
+  await deleteTopic(topicId, session.user.id);
   
   revalidatePath('/topics');
 }

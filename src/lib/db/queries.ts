@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, isNull } from 'drizzle-orm';
+import { eq, desc, and, sql, isNull, lt } from 'drizzle-orm';
 import { getDb } from './client';
 import {
   channels,
@@ -13,6 +13,12 @@ import {
 } from './schema';
 import type { Channel, Video, Topic, Tag, AppSettings } from './schema';
 
+export interface PaginatedResult<T> {
+  data: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+}
+
 export function getChannelsByUser(userId: string): Promise<Channel[]> {
   return getDb()
     .select()
@@ -21,24 +27,53 @@ export function getChannelsByUser(userId: string): Promise<Channel[]> {
     .orderBy(desc(channels.title));
 }
 
-export function getChannelById(channelId: string): Promise<Channel | undefined> {
-  return getDb().select().from(channels).where(eq(channels.id, channelId)).limit(1).then((r) => r[0]);
-}
-
-export function getVideosByChannel(channelId: string, limit = 50): Promise<Video[]> {
+export function getChannelById(channelId: string, userId: string): Promise<Channel | undefined> {
   return getDb()
     .select()
+    .from(channels)
+    .where(and(eq(channels.id, channelId), eq(channels.userId, userId)))
+    .limit(1)
+    .then((r) => r[0]);
+}
+
+export function getVideosByChannel(
+  channelId: string,
+  userId: string,
+  limit = 20,
+  cursor?: string
+): Promise<PaginatedResult<Video>> {
+  return getDb()
+    .select({ videos, publishedAt: videos.publishedAt })
     .from(videos)
-    .where(eq(videos.channelId, channelId))
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(
+      and(
+        eq(videos.channelId, channelId),
+        eq(channels.userId, userId),
+        ...(cursor ? [lt(videos.publishedAt, new Date(cursor))] : [])
+      )
+    )
     .orderBy(desc(videos.publishedAt))
-    .limit(limit);
+    .limit(limit + 1)
+    .then((rows) => {
+      const hasMore = rows.length > limit;
+      const data = hasMore ? rows.slice(0, -1).map((r) => r.videos) : rows.map((r) => r.videos);
+      const nextCursor = hasMore && data.length > 0 
+        ? data[data.length - 1].publishedAt?.toISOString() 
+        : undefined;
+      return { data, nextCursor, hasMore };
+    });
 }
 
 export function getRecentVideos(limit = 50): Promise<Video[]> {
   return getDb().select().from(videos).orderBy(desc(videos.publishedAt)).limit(limit);
 }
 
-export function getUnwatchedVideos(userId: string, limit = 50): Promise<(Video & { channelTitle: string })[]> {
+export function getUnwatchedVideos(
+  userId: string,
+  limit = 20,
+  cursor?: string
+): Promise<PaginatedResult<Video & { channelTitle: string }>> {
   return getDb()
     .select({
       id: videos.id,
@@ -55,9 +90,23 @@ export function getUnwatchedVideos(userId: string, limit = 50): Promise<(Video &
     .from(videos)
     .innerJoin(channels, eq(videos.channelId, channels.id))
     .leftJoin(watched, eq(watched.videoId, videos.id))
-    .where(and(eq(channels.userId, userId), isNull(watched.videoId)))
+    .where(
+      and(
+        eq(channels.userId, userId),
+        isNull(watched.videoId),
+        ...(cursor ? [lt(videos.publishedAt, new Date(cursor))] : [])
+      )
+    )
     .orderBy(desc(videos.publishedAt))
-    .limit(limit);
+    .limit(limit + 1)
+    .then((rows) => {
+      const hasMore = rows.length > limit;
+      const data = hasMore ? rows.slice(0, -1) : rows;
+      const nextCursor = hasMore && data.length > 0 
+        ? data[data.length - 1].publishedAt?.toISOString() 
+        : undefined;
+      return { data, nextCursor, hasMore };
+    });
 }
 
 export function getWatchedVideoIds(userId: string): Promise<string[]> {
@@ -91,6 +140,16 @@ export function isVideoWatched(videoId: string): Promise<boolean> {
     .then((r) => r.length > 0);
 }
 
+export function getVideoById(videoId: string, userId: string): Promise<Video | undefined> {
+  return getDb()
+    .select({ videos })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(and(eq(videos.id, videoId), eq(channels.userId, userId)))
+    .limit(1)
+    .then((r) => r[0]?.videos);
+}
+
 export function getTopicsByUser(userId: string): Promise<Topic[]> {
   return getDb()
     .select()
@@ -99,8 +158,34 @@ export function getTopicsByUser(userId: string): Promise<Topic[]> {
     .orderBy(desc(topics.createdAt));
 }
 
-export function getTopicById(topicId: string): Promise<Topic | undefined> {
-  return getDb().select().from(topics).where(eq(topics.id, topicId)).limit(1).then((r) => r[0]);
+export function getTopicById(topicId: string, userId: string): Promise<Topic | undefined> {
+  return getDb()
+    .select()
+    .from(topics)
+    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+    .limit(1)
+    .then((r) => r[0]);
+}
+
+export function updateTopic(
+  topicId: string,
+  userId: string,
+  data: Partial<Pick<Topic, 'name' | 'keywords' | 'categoryId' | 'color'>>
+): Promise<Topic> {
+  return getDb()
+    .update(topics)
+    .set(data)
+    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+    .returning()
+    .then((r) => r[0]);
+}
+
+export function deleteTopic(topicId: string, userId: string): Promise<void> {
+  return getDb()
+    .update(topics)
+    .set({ deletedAt: new Date() })
+    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+    .then();
 }
 
 export function createTopic(data: {
@@ -124,26 +209,6 @@ export function createTopic(data: {
     })
     .returning()
     .then((r) => r[0]);
-}
-
-export function updateTopic(
-  topicId: string,
-  data: Partial<Pick<Topic, 'name' | 'keywords' | 'categoryId' | 'color'>>
-): Promise<Topic> {
-  return getDb()
-    .update(topics)
-    .set(data)
-    .where(eq(topics.id, topicId))
-    .returning()
-    .then((r) => r[0]);
-}
-
-export function deleteTopic(topicId: string): Promise<void> {
-  return getDb()
-    .update(topics)
-    .set({ deletedAt: new Date() })
-    .where(eq(topics.id, topicId))
-    .then();
 }
 
 export function getTagsByUser(userId: string): Promise<Tag[]> {

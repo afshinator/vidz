@@ -16,11 +16,12 @@ export default async function DashboardPage() {
     redirect('/api/auth/signin');
   }
   
-  const [unwatchedVideos, topics, channels] = await Promise.all([
+  const [unwatchedVideosResult, topics, channels] = await Promise.all([
     getUnwatchedVideos(session.user.id, 8),
     getTopicsByUser(session.user.id).then(t => t.slice(0, 4)),
     getChannelsByUser(session.user.id).then(c => c.slice(0, 4)),
   ]);
+  const unwatchedVideos = unwatchedVideosResult.data;
   
   return (
     <>
