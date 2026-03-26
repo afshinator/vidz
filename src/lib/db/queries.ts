@@ -247,6 +247,7 @@ export type UnwatchedVideoWithTags = {
   duration: string | null;
   viewCount: number | null;
   categoryId: string | null;
+  fetchedAt: Date | null;
   channelTitle: string;
   tags: { id: string; name: string; color: string }[];
 };
@@ -264,6 +265,7 @@ export async function getUnwatchedVideosWithChannelTags(userId: string, limit = 
       duration: videos.duration,
       viewCount: videos.viewCount,
       categoryId: videos.categoryId,
+      fetchedAt: videos.fetchedAt,
       channelTitle: channels.title,
       tagId: tags.id,
       tagName: tags.name,
@@ -291,6 +293,7 @@ export async function getUnwatchedVideosWithChannelTags(userId: string, limit = 
         duration: row.duration,
         viewCount: row.viewCount,
         categoryId: row.categoryId,
+        fetchedAt: row.fetchedAt,
         channelTitle: row.channelTitle,
         tags: [],
       });

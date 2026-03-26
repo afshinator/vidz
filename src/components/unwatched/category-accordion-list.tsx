@@ -12,6 +12,7 @@ type UnwatchedVideo = Video & { channelTitle: string };
 export interface CategoryGroup {
   name: string;
   slug: string;
+  color?: string;
   videos: UnwatchedVideo[];
 }
 
@@ -49,6 +50,12 @@ export function CategoryAccordionList({ groups }: { groups: CategoryGroup[] }) {
           >
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="flex items-center gap-3">
+                {group.color && (
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: group.color }}
+                  />
+                )}
                 <span className="text-base font-semibold">{group.name}</span>
                 <Badge variant="secondary">{group.videos.length}</Badge>
               </div>
