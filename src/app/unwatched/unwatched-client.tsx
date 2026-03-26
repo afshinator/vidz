@@ -27,11 +27,13 @@ function groupByYTCategory(videos: UnwatchedVideoWithTags[]): CategoryGroup[] {
     map.get(name)!.videos.push(video);
   }
 
-  return Array.from(map.values()).sort((a, b) => {
+  const groups = Array.from(map.values()).sort((a, b) => {
     if (a.name === 'Uncategorized') return 1;
     if (b.name === 'Uncategorized') return -1;
     return a.name.localeCompare(b.name);
   });
+  for (const g of groups) g.videos.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+  return groups;
 }
 
 function groupByTag(videos: UnwatchedVideoWithTags[]): CategoryGroup[] {
@@ -50,8 +52,15 @@ function groupByTag(videos: UnwatchedVideoWithTags[]): CategoryGroup[] {
     }
   }
 
+  const byChannel = (a: UnwatchedVideoWithTags, b: UnwatchedVideoWithTags) =>
+    (a.channelTitle ?? '').localeCompare(b.channelTitle ?? '') ||
+    b.publishedAt.getTime() - a.publishedAt.getTime();
+
   const groups = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  for (const g of groups) (g.videos as UnwatchedVideoWithTags[]).sort(byChannel);
+
   if (uncategorized.length > 0) {
+    uncategorized.sort(byChannel as (a: UnwatchedVideoWithTags, b: UnwatchedVideoWithTags) => number);
     groups.push({ name: 'Uncategorized', slug: 'uncategorized', color: '#6b7280', videos: uncategorized });
   }
   return groups;
