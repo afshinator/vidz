@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getUnwatchedVideosWithChannelTags, getNotedVideoIds } from '@/lib/db/queries';
 import { Header } from '@/components/layout/header';
-import { VideoListItem } from '@/components/video/video-list-item';
+import { VideoGrid } from '@/components/video/video-grid';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SyncButton } from '@/components/sync-button';
 import Link from 'next/link';
@@ -95,17 +95,13 @@ export default async function DashboardPage() {
                     <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
                     <span className="text-xs text-muted-foreground">({group.videos.length})</span>
                   </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                    {group.videos.map((video) => (
-                      <VideoListItem
-                        key={video.id}
-                        video={video}
-                        channelTitle={video.channelTitle}
-                        isWatched={false}
-                        hasNote={notedIds.has(video.id)}
-                      />
-                    ))}
-                  </div>
+                  <VideoGrid
+                    videos={group.videos.map((v) => ({
+                      ...v,
+                      isWatched: false,
+                      hasNote: notedIds.has(v.id),
+                    }))}
+                  />
                 </div>
               ))}
             </div>

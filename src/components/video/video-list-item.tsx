@@ -42,9 +42,12 @@ export function VideoListItem({ video, channelTitle, isWatched, hasNote }: Video
     <>
       <div
         className={cn(
-          'group/item flex gap-3 rounded-xl border border-border/60 bg-card p-2.5 cursor-pointer',
-          'transition-all duration-150 hover:border-border hover:shadow-sm',
-          isWatched && 'opacity-55'
+          'group/item flex gap-3 rounded-xl border bg-card p-2.5 cursor-pointer',
+          'transition-all duration-150 hover:shadow-sm',
+          isWatched && 'opacity-55',
+          hasNote
+            ? 'border-l-[3px] border-l-primary border-border/60 hover:border-border/80 shadow-sm shadow-primary/10'
+            : 'border-border/60 hover:border-border'
         )}
         onClick={handleClick}
       >
@@ -104,9 +107,9 @@ export function VideoListItem({ video, channelTitle, isWatched, hasNote }: Video
             )}
           </p>
           {hasNote && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-primary/70 font-medium mt-0.5">
+            <span className="inline-flex items-center gap-1 mt-1 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary tracking-wide w-fit">
               <BookmarkCheck className="h-3 w-3" />
-              Noted
+              NOTED
             </span>
           )}
         </div>

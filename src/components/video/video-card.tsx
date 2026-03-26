@@ -47,7 +47,8 @@ export function VideoCard({ video, channelTitle, isWatched, hasNote }: VideoCard
         className={cn(
           'overflow-hidden gap-0 py-0 transition-all duration-200 group/card cursor-pointer',
           'hover:scale-[1.025] hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/40',
-          isWatched && 'opacity-55'
+          isWatched && 'opacity-55',
+          hasNote && 'ring-2 ring-primary shadow-lg shadow-primary/25'
         )}
         onClick={handleCardClick}
       >
@@ -77,9 +78,9 @@ export function VideoCard({ video, channelTitle, isWatched, hasNote }: VideoCard
 
           {/* Noted badge */}
           {hasNote && (
-            <div className="absolute top-2 right-2 rounded-md bg-black/75 px-1.5 py-0.5 backdrop-blur-sm flex items-center gap-1">
-              <BookmarkCheck className="h-3 w-3 text-white" />
-              <span className="text-[10px] font-medium text-white">Noted</span>
+            <div className="absolute top-2 right-2 rounded-md bg-primary px-1.5 py-0.5 flex items-center gap-1 shadow-sm">
+              <BookmarkCheck className="h-3 w-3 text-primary-foreground" />
+              <span className="text-[10px] font-semibold text-primary-foreground tracking-wide">NOTED</span>
             </div>
           )}
 
