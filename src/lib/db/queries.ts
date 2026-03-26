@@ -41,11 +41,24 @@ export function getVideosByChannel(
   userId: string,
   limit = 20,
   cursor?: string
-): Promise<PaginatedResult<Video>> {
+): Promise<PaginatedResult<Video & { isWatched: boolean }>> {
   return getDb()
-    .select({ videos, publishedAt: videos.publishedAt })
+    .select({
+      id: videos.id,
+      channelId: videos.channelId,
+      title: videos.title,
+      description: videos.description,
+      thumbnail: videos.thumbnail,
+      publishedAt: videos.publishedAt,
+      duration: videos.duration,
+      viewCount: videos.viewCount,
+      categoryId: videos.categoryId,
+      fetchedAt: videos.fetchedAt,
+      watchedAt: watched.watchedAt,
+    })
     .from(videos)
     .innerJoin(channels, eq(videos.channelId, channels.id))
+    .leftJoin(watched, eq(watched.videoId, videos.id))
     .where(
       and(
         eq(videos.channelId, channelId),
@@ -57,9 +70,21 @@ export function getVideosByChannel(
     .limit(limit + 1)
     .then((rows) => {
       const hasMore = rows.length > limit;
-      const data = hasMore ? rows.slice(0, -1).map((r) => r.videos) : rows.map((r) => r.videos);
-      const nextCursor = hasMore && data.length > 0 
-        ? data[data.length - 1].publishedAt?.toISOString() 
+      const data = (hasMore ? rows.slice(0, -1) : rows).map((r) => ({
+        id: r.id,
+        channelId: r.channelId,
+        title: r.title,
+        description: r.description,
+        thumbnail: r.thumbnail,
+        publishedAt: r.publishedAt,
+        duration: r.duration,
+        viewCount: r.viewCount,
+        categoryId: r.categoryId,
+        fetchedAt: r.fetchedAt,
+        isWatched: r.watchedAt !== null,
+      }));
+      const nextCursor = hasMore && data.length > 0
+        ? data[data.length - 1].publishedAt?.toISOString()
         : undefined;
       return { data, nextCursor, hasMore };
     });

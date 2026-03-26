@@ -47,7 +47,7 @@ export default async function ChannelPage({ params }: Props) {
                 key={video.id}
                 video={video}
                 channelTitle={channel.title}
-                isWatched={false}
+                isWatched={video.isWatched}
               />
             ))}
           </div>
