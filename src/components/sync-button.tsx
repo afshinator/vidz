@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { syncNowAction } from '@/actions/sync';
+import { cn } from '@/lib/utils';
 
 type SyncStatus = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -18,7 +19,10 @@ export function SyncButton() {
         const result = await syncNowAction();
         setStatus({ ok: result.success, message: result.message });
       } catch (error) {
-        setStatus({ ok: false, message: error instanceof Error ? error.message : 'Sync failed' });
+        setStatus({
+          ok: false,
+          message: error instanceof Error ? error.message : 'Sync failed',
+        });
       }
     });
   };
@@ -26,20 +30,28 @@ export function SyncButton() {
   return (
     <div className="flex items-center gap-2">
       <Button
-        variant="outline"
+        variant="default"
         size="sm"
         onClick={handleSync}
         disabled={isPending}
+        className="gap-1.5 shadow-sm"
       >
-        <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
-        {isPending ? 'Syncing...' : 'Sync Now'}
+        <RefreshCw className={cn('h-3.5 w-3.5', isPending && 'animate-spin')} />
+        {isPending ? 'Syncing…' : 'Sync Now'}
       </Button>
       {status && (
-        <span className={`flex items-center gap-1 text-xs ${status.ok ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
-          {status.ok
-            ? <CheckCircle className="h-3 w-3" />
-            : <AlertCircle className="h-3 w-3" />}
-          {status.message}
+        <span
+          className={cn(
+            'flex items-center gap-1.5 text-xs max-w-[280px]',
+            status.ok ? 'text-green-600 dark:text-green-400' : 'text-destructive'
+          )}
+        >
+          {status.ok ? (
+            <CheckCircle className="h-3 w-3 shrink-0" />
+          ) : (
+            <AlertCircle className="h-3 w-3 shrink-0" />
+          )}
+          <span className="truncate">{status.message}</span>
         </span>
       )}
     </div>

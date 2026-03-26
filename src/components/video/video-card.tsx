@@ -3,9 +3,9 @@
 import { formatRelativeTime } from '@/lib/utils/time';
 import { formatDuration, formatViewCount } from '@/lib/youtube/transformers';
 import Image from 'next/image';
-import { ExternalLink, Check, Circle } from 'lucide-react';
+import { Check, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toggleWatched } from '@/actions/videos';
 
@@ -26,63 +26,87 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video, channelTitle, isWatched }: VideoCardProps) {
-  const handleToggle = async () => {
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     await toggleWatched(video.id, isWatched);
   };
-  
+
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md">
-      <div className="relative aspect-video bg-muted">
-        {video.thumbnail && (
+    <Card
+      className={cn(
+        'overflow-hidden gap-0 py-0 transition-all duration-200 group/card cursor-pointer',
+        'hover:scale-[1.025] hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/40',
+        isWatched && 'opacity-55'
+      )}
+    >
+      {/* Thumbnail — entire area links to YouTube */}
+      <a
+        href={`https://www.youtube.com/watch?v=${video.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative block aspect-video bg-muted overflow-hidden"
+      >
+        {video.thumbnail ? (
           <Image
             src={video.thumbnail}
             alt={video.title}
             fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover/card:scale-[1.04]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
+        ) : (
+          <div className="absolute inset-0 bg-muted flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-muted-foreground/20" />
+          </div>
         )}
-        <div className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-xs text-white">
+
+        {/* Gradient scrim on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-200" />
+
+        {/* Duration badge */}
+        <div className="absolute bottom-2 right-2 rounded-md bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white tabular-nums backdrop-blur-sm">
           {video.duration ? formatDuration(video.duration) : '0:00'}
         </div>
+
+        {/* Watch toggle — slides in on hover */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 left-2 h-8 w-8 rounded-full bg-black/50 hover:bg-black/70"
+          className={cn(
+            'absolute top-2 left-2 h-7 w-7 rounded-full backdrop-blur-sm transition-all duration-150',
+            'opacity-0 group-hover/card:opacity-100',
+            isWatched
+              ? 'bg-green-500/80 hover:bg-green-500'
+              : 'bg-black/50 hover:bg-black/70'
+          )}
           onClick={handleToggle}
         >
           {isWatched ? (
-            <Check className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-white" />
           ) : (
-            <Circle className="h-4 w-4 text-white" />
+            <Check className="h-3.5 w-3.5 text-white/70" />
           )}
         </Button>
-      </div>
-      <CardHeader className="p-3">
-        <h3 className="line-clamp-2 text-sm font-medium leading-tight">{video.title}</h3>
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
-        <p className="text-xs text-muted-foreground">
-          {channelTitle && <span className="font-medium">{channelTitle}</span>}
-          {channelTitle && ' • '}
-          {formatRelativeTime(video.publishedAt)}
-          {video.viewCount !== null && video.viewCount !== undefined && (
-            <> • {formatViewCount(video.viewCount)} views</>
+      </a>
+
+      {/* Metadata */}
+      <div className="p-3 space-y-1">
+        <h3 className="line-clamp-2 text-sm font-medium leading-snug">{video.title}</h3>
+        <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+          {channelTitle && (
+            <span className="text-primary/90 font-medium">{channelTitle}</span>
+          )}
+          {channelTitle && <span className="opacity-30">·</span>}
+          <span>{formatRelativeTime(video.publishedAt)}</span>
+          {video.viewCount != null && video.viewCount !== undefined && (
+            <>
+              <span className="opacity-30">·</span>
+              <span>{formatViewCount(video.viewCount)} views</span>
+            </>
           )}
         </p>
-      </CardContent>
-      <CardFooter className="p-3 pt-0">
-        <Button variant="ghost" size="sm" className="w-full" asChild>
-          <a
-            href={`https://www.youtube.com/watch?v=${video.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Open on YouTube
-          </a>
-        </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 }

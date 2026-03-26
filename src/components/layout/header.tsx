@@ -18,23 +18,27 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle, actions }: HeaderProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  
+  const { setTheme, resolvedTheme } = useTheme();
+
   return (
-    <header className="flex items-center justify-between border-b bg-card px-6 py-4">
+    <header className="flex items-center justify-between border-b border-border/50 bg-background/95 px-6 py-4 -mx-4 md:-mx-6 mb-6 px-4 md:px-6">
       <div>
-        {title && <h1 className="text-2xl font-semibold">{title}</h1>}
-        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        {title && (
+          <h1 className="font-heading text-2xl font-bold tracking-tight">{title}</h1>
+        )}
+        {subtitle && (
+          <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+        )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {actions}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
               {resolvedTheme === 'dark' ? (
-                <Moon className="h-5 w-5" />
+                <Moon className="h-4 w-4" />
               ) : (
-                <Sun className="h-5 w-5" />
+                <Sun className="h-4 w-4" />
               )}
             </Button>
           </DropdownMenuTrigger>
@@ -53,8 +57,13 @@ export function Header({ title, subtitle, actions }: HeaderProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="ghost" size="sm" onClick={() => signOut()}>
-          Sign Out
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => signOut()}
+          className="text-muted-foreground hover:text-foreground text-xs"
+        >
+          Sign out
         </Button>
       </div>
     </header>

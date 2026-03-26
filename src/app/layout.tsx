@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Sidebar, MobileNav } from "@/components/layout/sidebar";
@@ -7,6 +7,14 @@ import { Sidebar, MobileNav } from "@/components/layout/sidebar";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} min-h-full antialiased`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} min-h-full antialiased`}>
         <Providers>
           <div className="flex min-h-screen">
             <Sidebar />
