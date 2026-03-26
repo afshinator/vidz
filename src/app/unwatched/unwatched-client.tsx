@@ -78,7 +78,7 @@ function countByChannel(videos: UnwatchedVideoWithTags[]): ChannelCount[] {
 }
 
 export function UnwatchedClient({ videos, notedVideoIds }: { videos: UnwatchedVideoWithTags[]; notedVideoIds: string[] }) {
-  const [mode, setMode] = useState<GroupMode>('category');
+  const [mode, setMode] = useState<GroupMode>('tag');
 
   const notedSet = new Set(notedVideoIds);
   const groups = mode === 'tag' ? groupByTag(videos) : groupByYTCategory(videos);

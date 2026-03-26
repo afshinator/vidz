@@ -5,6 +5,8 @@ import { Header } from '@/components/layout/header';
 import { VideoGrid } from '@/components/video/video-grid';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SyncButton } from '@/components/sync-button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -84,27 +86,39 @@ export default async function DashboardPage() {
               </Button>
             </div>
 
-            <div className="space-y-8">
+            <Accordion
+              type="multiple"
+              defaultValue={tagGroups[0] ? [tagGroups[0].id] : []}
+              className="space-y-2"
+            >
               {tagGroups.map((group) => (
-                <div key={group.id}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: group.color }}
+                <AccordionItem
+                  key={group.id}
+                  value={group.id}
+                  className="border rounded-lg px-4"
+                >
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: group.color }}
+                      />
+                      <span className="text-base font-semibold">{group.name}</span>
+                      <Badge variant="secondary">{group.videos.length}</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 pt-2">
+                    <VideoGrid
+                      videos={group.videos.map((v) => ({
+                        ...v,
+                        isWatched: false,
+                        hasNote: notedIds.has(v.id),
+                      }))}
                     />
-                    <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
-                    <span className="text-xs text-muted-foreground">({group.videos.length})</span>
-                  </div>
-                  <VideoGrid
-                    videos={group.videos.map((v) => ({
-                      ...v,
-                      isWatched: false,
-                      hasNote: notedIds.has(v.id),
-                    }))}
-                  />
-                </div>
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </div>
+            </Accordion>
           </section>
         ) : (
           <EmptyState
