@@ -28,6 +28,7 @@ export function toVideo(
     publishedAt: new Date(ytVideo.publishedAt),
     duration: ytVideo.duration,
     viewCount: ytVideo.viewCount,
+    categoryId: ytVideo.categoryId ?? null,
   };
 }
 

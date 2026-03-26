@@ -97,6 +97,7 @@ export async function syncNowAction(): Promise<SyncResult> {
                 publishedAt: new Date(video.publishedAt),
                 duration: video.duration,
                 viewCount: video.viewCount,
+                categoryId: video.categoryId ?? null,
               });
               videosAdded++;
               channelVideoCount++;

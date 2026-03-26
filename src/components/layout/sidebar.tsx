@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { useSidebar } from './sidebar-context';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,14 +47,16 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function Sidebar() {
+  const { extraContent } = useSidebar();
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen border-r bg-card p-4">
+    <aside className="hidden md:flex flex-col w-64 h-screen border-r bg-card p-4 overflow-y-auto">
       <div className="mb-6">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold">vidz</span>
         </Link>
       </div>
       <NavContent />
+      {extraContent}
       <div className="mt-auto pt-4 border-t">
         <p className="text-xs text-muted-foreground">Personal YouTube Dashboard</p>
       </div>

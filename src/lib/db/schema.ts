@@ -22,6 +22,7 @@ export const videos = pgTable('videos', {
   publishedAt: timestamp('published_at').notNull(),
   duration: text('duration'),
   viewCount: bigint('view_count', { mode: 'number' }),
+  categoryId: text('category_id'),
   fetchedAt: timestamp('fetched_at').defaultNow(),
 }, (table) => ({
   channelIdIdx: index('videos_channel_id_idx').on(table.channelId),

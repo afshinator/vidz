@@ -56,6 +56,7 @@ export interface YouTubeVideo {
   publishedAt: string;
   duration: string;
   viewCount: number;
+  categoryId?: string;
 }
 
 export async function getSubscriptions(
@@ -141,16 +142,17 @@ export async function getChannelVideos(
 
   const videoIds = playlistData.items.map((item) => item.snippet.resourceId.videoId);
 
-  // Batch fetch duration + viewCount for this page of videos (1 unit for up to 50)
+  // Batch fetch snippet (categoryId) + contentDetails + statistics for this page of videos (1 unit for up to 50)
   const { data: videoData } = await fetchYouTube<{
     items: Array<{
       id: string;
+      snippet: { categoryId: string };
       contentDetails: { duration: string };
       statistics: { viewCount: string };
     }>;
   }>('/videos', accessToken, {
     id: videoIds.join(','),
-    part: 'contentDetails,statistics',
+    part: 'snippet,contentDetails,statistics',
   });
 
   const detailsMap = new Map(videoData.items.map((item) => [item.id, item]));
@@ -168,6 +170,7 @@ export async function getChannelVideos(
         publishedAt: item.snippet.publishedAt,
         duration: details?.contentDetails.duration || 'PT0M0S',
         viewCount: parseInt(details?.statistics.viewCount || '0', 10),
+        categoryId: details?.snippet.categoryId,
       };
     }),
     nextPageToken: playlistData.nextPageToken,

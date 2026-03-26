@@ -1,45 +1,54 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { getUnwatchedVideos } from '@/lib/db/queries';
+import { getUnwatchedVideos, getTopicsByUser, getChannelsByUser } from '@/lib/db/queries';
 import { Header } from '@/components/layout/header';
-import { VideoCard } from '@/components/video/video-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import type { Video } from '@/lib/db/schema';
+import { SidebarChannelList } from '@/components/layout/sidebar-extra';
+import { CategoryAccordionList } from '@/components/unwatched/category-accordion-list';
+import type { CategoryGroup } from '@/components/unwatched/category-accordion-list';
+import { matchesTopic } from '@/lib/topics/matcher';
+import { getCategoryById } from '@/lib/topics/categorizer';
+import type { Video, Topic } from '@/lib/db/schema';
 
 type UnwatchedVideo = Video & { channelTitle: string };
 
-interface ChannelGroup {
-  channelId: string;
-  channelTitle: string;
-  videos: UnwatchedVideo[];
-}
-
-function groupByChannel(videos: UnwatchedVideo[]): ChannelGroup[] {
-  const map = new Map<string, ChannelGroup>();
+function groupByCategory(videos: UnwatchedVideo[], topics: Topic[]): CategoryGroup[] {
+  const map = new Map<string, CategoryGroup>();
 
   for (const video of videos) {
-    const key = video.channelId ?? '__unknown__';
-    let group = map.get(key);
+    let categoryName = 'Uncategorized';
+
+    // Topic match first (keyword-based personal categories)
+    for (const topic of topics) {
+      if (topic.keywords?.length && matchesTopic(video, topic.keywords)) {
+        categoryName = topic.name;
+        break;
+      }
+    }
+
+    // Fall back to YouTube built-in category
+    if (categoryName === 'Uncategorized' && video.categoryId) {
+      const ytCategory = getCategoryById(video.categoryId);
+      if (ytCategory) categoryName = ytCategory.name;
+    }
+
+    const slug = categoryName.toLowerCase().replace(/\s+/g, '-');
+    let group = map.get(categoryName);
     if (!group) {
-      group = { channelId: key, channelTitle: video.channelTitle, videos: [] };
-      map.set(key, group);
+      group = { name: categoryName, slug, videos: [] };
+      map.set(categoryName, group);
     }
     group.videos.push(video);
   }
 
-  // Sort videos within each group by publishedAt descending
-  for (const group of map.values()) {
-    group.videos.sort((a, b) => {
-      const aTime = a.publishedAt?.getTime() ?? 0;
-      const bTime = b.publishedAt?.getTime() ?? 0;
-      return bTime - aTime;
-    });
-  }
-
-  // Sort groups by video count descending
-  return Array.from(map.values()).sort((a, b) => b.videos.length - a.videos.length);
+  // Sort alphabetically, Uncategorized always last
+  return Array.from(map.values()).sort((a, b) => {
+    if (a.name === 'Uncategorized') return 1;
+    if (b.name === 'Uncategorized') return -1;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export default async function UnwatchedPage() {
@@ -48,70 +57,65 @@ export default async function UnwatchedPage() {
     redirect('/api/auth/signin');
   }
 
-  const result = await getUnwatchedVideos(session.user.id, 200);
-  const allVideos = result.data;
-  const groups = groupByChannel(allVideos);
-  const totalCount = allVideos.length;
-  const channelCount = groups.length;
+  const [result, topics, channels] = await Promise.all([
+    getUnwatchedVideos(session.user.id, 500),
+    getTopicsByUser(session.user.id),
+    getChannelsByUser(session.user.id),
+  ]);
 
-  const summaryText =
-    totalCount === 0
-      ? 'All caught up!'
-      : `${totalCount} unwatched ${totalCount === 1 ? 'video' : 'videos'} across ${channelCount} ${channelCount === 1 ? 'channel' : 'channels'}`;
+  const allVideos = result.data;
+  const groups = groupByCategory(allVideos, topics);
+  const totalCount = allVideos.length;
+  const categoryCount = groups.length;
 
   return (
     <>
-      <Header title="Unwatched" subtitle={summaryText} />
+      <SidebarChannelList channels={channels} />
+      <Header title="Unwatched" />
 
-      <div className="mt-6 space-y-2">
-        {totalCount > 0 && (
-          <Card className="mb-6">
-            <CardContent className="flex flex-wrap items-center gap-4 py-4">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold">{totalCount}</span>
-                <span className="text-sm text-muted-foreground">
-                  unwatched {totalCount === 1 ? 'video' : 'videos'}
-                </span>
-              </div>
-              <div className="h-6 w-px bg-border" />
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold">{channelCount}</span>
-                <span className="text-sm text-muted-foreground">
-                  {channelCount === 1 ? 'channel' : 'channels'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {totalCount === 0 ? (
+      {totalCount === 0 ? (
+        <div className="mt-6">
           <EmptyState
             title="All caught up!"
             description="No unwatched videos. Sync your subscriptions to check for new content."
           />
-        ) : (
-          <div className="space-y-10">
-            {groups.map((group) => (
-              <section key={group.channelId}>
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-lg font-semibold">{group.channelTitle}</h2>
-                  <Badge variant="secondary">{group.videos.length}</Badge>
+        </div>
+      ) : (
+        <div className="mt-6 space-y-6">
+          {/* Summary + category anchor links */}
+          <Card>
+            <CardContent className="py-4 space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold">{totalCount}</span>
+                  <span className="text-sm text-muted-foreground">
+                    unwatched {totalCount === 1 ? 'video' : 'videos'}
+                  </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {group.videos.map((video) => (
-                    <VideoCard
-                      key={video.id}
-                      video={video}
-                      channelTitle={group.channelTitle}
-                      isWatched={false}
-                    />
-                  ))}
+                <div className="h-6 w-px bg-border" />
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold">{categoryCount}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {categoryCount === 1 ? 'category' : 'categories'}
+                  </span>
                 </div>
-              </section>
-            ))}
-          </div>
-        )}
-      </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {groups.map((group) => (
+                  <a key={group.slug} href={`#${group.slug}`}>
+                    <Badge variant="secondary" className="cursor-pointer hover:bg-muted-foreground/20 transition-colors">
+                      {group.name}
+                      <span className="ml-1.5 text-muted-foreground">{group.videos.length}</span>
+                    </Badge>
+                  </a>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <CategoryAccordionList groups={groups} />
+        </div>
+      )}
     </>
   );
 }

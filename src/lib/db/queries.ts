@@ -84,6 +84,7 @@ export function getUnwatchedVideos(
       publishedAt: videos.publishedAt,
       duration: videos.duration,
       viewCount: videos.viewCount,
+      categoryId: videos.categoryId,
       fetchedAt: videos.fetchedAt,
       channelTitle: channels.title,
     })
@@ -286,6 +287,7 @@ export function upsertVideo(video: Omit<Video, 'fetchedAt'>): Promise<Video> {
         description: video.description,
         thumbnail: video.thumbnail,
         viewCount: video.viewCount,
+        categoryId: video.categoryId,
       },
     })
     .returning()
