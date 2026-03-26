@@ -39,7 +39,7 @@ export default async function DashboardPage() {
               <h2 className="text-lg font-semibold">
                 Unwatched ({unwatchedVideos.length})
               </h2>
-              <Link href="/?filter=unwatched">
+              <Link href="/unwatched">
                 <Button variant="ghost" size="sm">
                   View All <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

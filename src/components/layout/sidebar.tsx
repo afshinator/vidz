@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Hash, Tv, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Hash, Tv, Settings, Menu, X, PlayCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/unwatched', label: 'Unwatched', icon: PlayCircle },
   { href: '/topics', label: 'Topics', icon: Hash },
   { href: '/channels', label: 'Channels', icon: Tv },
   { href: '/settings', label: 'Settings', icon: Settings },
