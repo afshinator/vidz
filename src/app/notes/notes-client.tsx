@@ -71,7 +71,7 @@ function NoteCard({ note }: { note: VideoNoteWithVideo }) {
             <span>{formatRelativeTime(note.video.publishedAt)}</span>
           </p>
           {note.notes && (
-            <p className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1.5 leading-relaxed">
+            <p className="text-sm text-muted-foreground bg-muted/50 rounded-md px-2 py-1.5 leading-relaxed">
               {note.notes}
             </p>
           )}
