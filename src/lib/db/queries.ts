@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, isNull, lt } from 'drizzle-orm';
+import { eq, desc, and, sql, isNull, lt, inArray } from 'drizzle-orm';
 import { getDb } from './client';
 import {
   channels,
@@ -336,5 +336,77 @@ export function upsertSyncState(data: {
       target: syncState.channelId,
       set: data,
     })
+    .then();
+}
+
+export type ChannelWithTags = Channel & {
+  tags: Tag[];
+  unwatchedCount: number;
+};
+
+export async function getChannelsWithTags(userId: string): Promise<ChannelWithTags[]> {
+  const userChannels = await getDb()
+    .select()
+    .from(channels)
+    .where(eq(channels.userId, userId))
+    .orderBy(channels.title);
+
+  if (userChannels.length === 0) return [];
+
+  const channelIds = userChannels.map((c) => c.id);
+
+  const [channelTagRows, unwatchedRows] = await Promise.all([
+    getDb()
+      .select({ channelId: channelTags.channelId, tag: tags })
+      .from(channelTags)
+      .innerJoin(tags, eq(channelTags.tagId, tags.id))
+      .where(inArray(channelTags.channelId, channelIds)),
+    getDb()
+      .select({ channelId: videos.channelId, count: sql<number>`cast(count(*) as int)` })
+      .from(videos)
+      .leftJoin(watched, eq(watched.videoId, videos.id))
+      .where(and(inArray(videos.channelId, channelIds), isNull(watched.videoId)))
+      .groupBy(videos.channelId),
+  ]);
+
+  const tagsByChannel = new Map<string, Tag[]>();
+  for (const row of channelTagRows) {
+    if (!row.channelId) continue;
+    if (!tagsByChannel.has(row.channelId)) tagsByChannel.set(row.channelId, []);
+    tagsByChannel.get(row.channelId)!.push(row.tag);
+  }
+
+  const unwatchedByChannel = new Map<string, number>();
+  for (const row of unwatchedRows) {
+    if (row.channelId) unwatchedByChannel.set(row.channelId, row.count);
+  }
+
+  return userChannels.map((channel) => ({
+    ...channel,
+    tags: tagsByChannel.get(channel.id) ?? [],
+    unwatchedCount: unwatchedByChannel.get(channel.id) ?? 0,
+  }));
+}
+
+export function assignTagToChannel(channelId: string, tagId: string): Promise<void> {
+  return getDb()
+    .insert(channelTags)
+    .values({ channelId, tagId })
+    .onConflictDoNothing()
+    .then();
+}
+
+export function removeTagFromChannel(channelId: string, tagId: string): Promise<void> {
+  return getDb()
+    .delete(channelTags)
+    .where(and(eq(channelTags.channelId, channelId), eq(channelTags.tagId, tagId)))
+    .then();
+}
+
+export function deleteTag(tagId: string, userId: string): Promise<void> {
+  return getDb()
+    .update(tags)
+    .set({ deletedAt: new Date() })
+    .where(and(eq(tags.id, tagId), eq(tags.userId, userId)))
     .then();
 }
