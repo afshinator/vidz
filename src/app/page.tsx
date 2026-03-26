@@ -1,15 +1,52 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { getUnwatchedVideos, getTopicsByUser, getChannelsByUser } from '@/lib/db/queries';
+import { getUnwatchedVideosWithChannelTags } from '@/lib/db/queries';
 import { Header } from '@/components/layout/header';
-import { VideoGrid } from '@/components/video/video-grid';
-import { TopicCard } from '@/components/topic/topic-card';
-import { ChannelCard } from '@/components/channel/channel-card';
+import { VideoListItem } from '@/components/video/video-list-item';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SyncButton } from '@/components/sync-button';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import type { UnwatchedVideoWithTags } from '@/lib/db/queries';
+
+const TAG_LIMIT = 8;
+
+interface TagGroup {
+  id: string;
+  name: string;
+  color: string;
+  videos: UnwatchedVideoWithTags[];
+}
+
+function groupByTag(videos: UnwatchedVideoWithTags[]): TagGroup[] {
+  const map = new Map<string, TagGroup>();
+  const uncategorized: UnwatchedVideoWithTags[] = [];
+
+  for (const video of videos) {
+    if (video.tags.length === 0) {
+      if (uncategorized.length < TAG_LIMIT) uncategorized.push(video);
+    } else {
+      for (const tag of video.tags) {
+        if (!map.has(tag.id)) {
+          map.set(tag.id, { id: tag.id, name: tag.name, color: tag.color, videos: [] });
+        }
+        const group = map.get(tag.id)!;
+        if (group.videos.length < TAG_LIMIT) group.videos.push(video);
+      }
+    }
+  }
+
+  const groups = Array.from(map.values())
+    .filter((g) => g.videos.length > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (uncategorized.length > 0) {
+    groups.push({ id: 'uncategorized', name: 'Uncategorized', color: '#6b7280', videos: uncategorized });
+  }
+
+  return groups;
+}
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -17,12 +54,9 @@ export default async function DashboardPage() {
     redirect('/api/auth/signin');
   }
 
-  const [unwatchedVideosResult, topics, channels] = await Promise.all([
-    getUnwatchedVideos(session.user.id, 8),
-    getTopicsByUser(session.user.id).then((t) => t.slice(0, 4)),
-    getChannelsByUser(session.user.id).then((c) => c.slice(0, 4)),
-  ]);
-  const unwatchedVideos = unwatchedVideosResult.data;
+  const allUnwatched = await getUnwatchedVideosWithChannelTags(session.user.id);
+  const tagGroups = groupByTag(allUnwatched);
+  const totalUnwatched = allUnwatched.length;
 
   return (
     <>
@@ -33,11 +67,11 @@ export default async function DashboardPage() {
       />
 
       <div className="space-y-8">
-        {unwatchedVideos.length > 0 && (
+        {tagGroups.length > 0 ? (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">
-                Unwatched ({unwatchedVideos.length})
+                Unwatched <span className="text-muted-foreground font-normal text-base">({totalUnwatched})</span>
               </h2>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/unwatched">
@@ -45,52 +79,36 @@ export default async function DashboardPage() {
                 </Link>
               </Button>
             </div>
-            <VideoGrid videos={unwatchedVideos} />
-          </section>
-        )}
 
-        {topics.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Your Topics</h2>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/topics">
-                  View All <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {topics.map((topic) => (
-                <TopicCard key={topic.id} topic={topic} />
+            <div className="space-y-8">
+              {tagGroups.map((group) => (
+                <div key={group.id}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span
+                      className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: group.color }}
+                    />
+                    <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
+                    <span className="text-xs text-muted-foreground">({group.videos.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                    {group.videos.map((video) => (
+                      <VideoListItem
+                        key={video.id}
+                        video={video}
+                        channelTitle={video.channelTitle}
+                        isWatched={false}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </section>
-        )}
-
-        {channels.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Your Channels</h2>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/channels">
-                  View All <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {channels.map((channel) => (
-                <Link key={channel.id} href={`/channels/${channel.id}`}>
-                  <ChannelCard channel={channel} />
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {unwatchedVideos.length === 0 && topics.length === 0 && channels.length === 0 && (
+        ) : (
           <EmptyState
-            title="No data yet"
-            description="Sync your YouTube subscriptions to get started"
+            title="All caught up!"
+            description="No unwatched videos. Sync your subscriptions to check for new content."
             action={<SyncButton />}
           />
         )}

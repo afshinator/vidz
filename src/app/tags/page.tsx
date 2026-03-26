@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/header';
 import { CreateTagDialog } from '@/components/topic/create-tag-dialog';
 import { TopicsClient } from '@/components/topic/topics-client';
 
-export default async function TopicsPage() {
+export default async function TagsPage() {
   const session = await auth();
   if (!session?.user?.id) {
     redirect('/api/auth/signin');
@@ -19,8 +19,8 @@ export default async function TopicsPage() {
   return (
     <>
       <Header
-        title="Topics"
-        subtitle="Group your channels by topic"
+        title="Tags"
+        subtitle="Group your channels by tag"
         actions={<CreateTagDialog />}
         showViewToggle={false}
       />

@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, isNull, lt, gte, inArray } from 'drizzle-orm';
+import { eq, desc, and, sql, isNull, lt, inArray } from 'drizzle-orm';
 import { getDb } from './client';
 import {
   channels,
@@ -237,6 +237,72 @@ export function createTopic(data: {
     .then((r) => r[0]);
 }
 
+export type UnwatchedVideoWithTags = {
+  id: string;
+  channelId: string | null;
+  title: string;
+  description: string | null;
+  thumbnail: string | null;
+  publishedAt: Date;
+  duration: string | null;
+  viewCount: number | null;
+  categoryId: string | null;
+  channelTitle: string;
+  tags: { id: string; name: string; color: string }[];
+};
+
+export async function getUnwatchedVideosWithChannelTags(userId: string, limit = 500): Promise<UnwatchedVideoWithTags[]> {
+  // Fetch unwatched videos (no watched record), with their channel's tags
+  const rows = await getDb()
+    .select({
+      id: videos.id,
+      channelId: videos.channelId,
+      title: videos.title,
+      description: videos.description,
+      thumbnail: videos.thumbnail,
+      publishedAt: videos.publishedAt,
+      duration: videos.duration,
+      viewCount: videos.viewCount,
+      categoryId: videos.categoryId,
+      channelTitle: channels.title,
+      tagId: tags.id,
+      tagName: tags.name,
+      tagColor: tags.color,
+    })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .leftJoin(watched, eq(watched.videoId, videos.id))
+    .leftJoin(channelTags, eq(channelTags.channelId, channels.id))
+    .leftJoin(tags, and(eq(channelTags.tagId, tags.id), isNull(tags.deletedAt)))
+    .where(and(eq(channels.userId, userId), isNull(watched.videoId)))
+    .orderBy(desc(videos.publishedAt))
+    .limit(limit);
+
+  const videoMap = new Map<string, UnwatchedVideoWithTags>();
+  for (const row of rows) {
+    if (!videoMap.has(row.id)) {
+      videoMap.set(row.id, {
+        id: row.id,
+        channelId: row.channelId,
+        title: row.title,
+        description: row.description,
+        thumbnail: row.thumbnail,
+        publishedAt: row.publishedAt,
+        duration: row.duration,
+        viewCount: row.viewCount,
+        categoryId: row.categoryId,
+        channelTitle: row.channelTitle,
+        tags: [],
+      });
+    }
+    if (row.tagId && row.tagName && row.tagColor) {
+      videoMap.get(row.id)!.tags.push({ id: row.tagId, name: row.tagName, color: row.tagColor });
+    }
+  }
+
+  return Array.from(videoMap.values());
+}
+
 export function getTagsByUser(userId: string): Promise<Tag[]> {
   return getDb()
     .select()
@@ -409,82 +475,4 @@ export function deleteTag(tagId: string, userId: string): Promise<void> {
     .set({ deletedAt: new Date() })
     .where(and(eq(tags.id, tagId), eq(tags.userId, userId)))
     .then();
-}
-
-export type WatchedVideoWithTags = {
-  id: string;
-  channelId: string | null;
-  title: string;
-  description: string | null;
-  thumbnail: string | null;
-  publishedAt: Date;
-  duration: string | null;
-  viewCount: number | null;
-  categoryId: string | null;
-  fetchedAt: Date | null;
-  channelTitle: string;
-  watchedAt: Date;
-  tags: { id: string; name: string; color: string }[];
-};
-
-export async function getWatchedVideosWithTags(
-  userId: string,
-  since?: Date
-): Promise<WatchedVideoWithTags[]> {
-  const rows = await getDb()
-    .select({
-      id: videos.id,
-      channelId: videos.channelId,
-      title: videos.title,
-      description: videos.description,
-      thumbnail: videos.thumbnail,
-      publishedAt: videos.publishedAt,
-      duration: videos.duration,
-      viewCount: videos.viewCount,
-      categoryId: videos.categoryId,
-      fetchedAt: videos.fetchedAt,
-      channelTitle: channels.title,
-      watchedAt: watched.watchedAt,
-      tagId: tags.id,
-      tagName: tags.name,
-      tagColor: tags.color,
-    })
-    .from(watched)
-    .innerJoin(videos, eq(watched.videoId, videos.id))
-    .innerJoin(channels, eq(videos.channelId, channels.id))
-    .leftJoin(channelTags, eq(channelTags.channelId, channels.id))
-    .leftJoin(tags, and(eq(channelTags.tagId, tags.id), isNull(tags.deletedAt)))
-    .where(
-      and(
-        eq(channels.userId, userId),
-        ...(since ? [gte(watched.watchedAt, since)] : [])
-      )
-    )
-    .orderBy(desc(watched.watchedAt));
-
-  const videoMap = new Map<string, WatchedVideoWithTags>();
-  for (const row of rows) {
-    if (!videoMap.has(row.id)) {
-      videoMap.set(row.id, {
-        id: row.id,
-        channelId: row.channelId,
-        title: row.title,
-        description: row.description,
-        thumbnail: row.thumbnail,
-        publishedAt: row.publishedAt,
-        duration: row.duration,
-        viewCount: row.viewCount,
-        categoryId: row.categoryId,
-        fetchedAt: row.fetchedAt,
-        channelTitle: row.channelTitle,
-        watchedAt: row.watchedAt!,
-        tags: [],
-      });
-    }
-    if (row.tagId && row.tagName && row.tagColor) {
-      videoMap.get(row.id)!.tags.push({ id: row.tagId, name: row.tagName, color: row.tagColor });
-    }
-  }
-
-  return Array.from(videoMap.values());
 }

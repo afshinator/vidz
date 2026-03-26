@@ -26,7 +26,7 @@ export async function toggleWatched(videoId: string, currentlyWatched: boolean) 
   }
   
   revalidatePath('/');
-  revalidatePath('/topics');
+  revalidatePath('/tags');
   revalidatePath('/channels');
 }
 
@@ -39,7 +39,7 @@ export async function markAsWatchedAction(videoId: string) {
   await verifyVideoOwnership(videoId, session.user.id);
   await markVideoWatched(videoId);
   revalidatePath('/');
-  revalidatePath('/topics');
+  revalidatePath('/tags');
   revalidatePath('/channels');
 }
 
@@ -52,6 +52,6 @@ export async function markAsUnwatchedAction(videoId: string) {
   await verifyVideoOwnership(videoId, session.user.id);
   await markVideoUnwatched(videoId);
   revalidatePath('/');
-  revalidatePath('/topics');
+  revalidatePath('/tags');
   revalidatePath('/channels');
 }
