@@ -54,12 +54,11 @@ export function TagAssignPopover({ channelId, allTags, assignedTagIds }: TagAssi
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
+          variant="secondary"
           size="sm"
-          className="h-7 px-2 text-xs text-muted-foreground opacity-0 group-hover/chtopic:opacity-100 transition-opacity"
+          className="h-5 w-5 p-0 rounded-full shadow-sm text-muted-foreground"
         >
-          <Tag className="h-3 w-3 mr-1" />
-          Tag
+          <Tag className="h-2.5 w-2.5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="start" side="bottom">

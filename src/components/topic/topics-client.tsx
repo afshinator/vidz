@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
@@ -42,10 +42,17 @@ export function TopicsClient({ channels, allTags }: TopicsClientProps) {
     showUntagged = false;
   }
 
+  const allSectionIds = [
+    ...visibleGroups.map((g) => g.tag.id),
+    ...(showUntagged ? ['untagged'] : []),
+  ];
+  const [openSections, setOpenSections] = useState<string[]>(allSectionIds);
+  const allOpen = openSections.length >= allSectionIds.length;
+
   return (
     <div>
       {/* Filter pills */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-2 mb-6">
         <FilterPill active={activeFilter === null} onClick={() => setActiveFilter(null)}>
           All · {channels.length}
         </FilterPill>
@@ -70,55 +77,80 @@ export function TopicsClient({ channels, allTags }: TopicsClientProps) {
             Untagged · {untagged.length}
           </FilterPill>
         )}
-      </div>
-
-      {/* Grouped sections */}
-      <div className="space-y-8">
-        {visibleGroups.map(({ tag, channels: groupChannels }) => (
-          <section key={tag.id}>
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="h-3 w-3 rounded-full shrink-0"
-                style={{ backgroundColor: tag.color || '#6366f1' }}
-              />
-              <h2 className="text-base font-semibold">{tag.name}</h2>
-              <span className="text-sm text-muted-foreground">({groupChannels.length})</span>
-              <div className="flex-1 h-px bg-border/60 ml-1" />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground/40 hover:text-destructive transition-colors"
-                onClick={() => startTransition(() => deleteTagAction(tag.id))}
-                title="Delete topic"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-            <ChannelGrid channels={groupChannels} allTags={allTags} />
-          </section>
-        ))}
-
-        {showUntagged && (
-          <section>
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-base font-semibold text-muted-foreground">Untagged</h2>
-              <span className="text-sm text-muted-foreground">({untagged.length})</span>
-              <div className="flex-1 h-px bg-border/60 ml-1" />
-            </div>
-            <ChannelGrid channels={untagged} allTags={allTags} />
-          </section>
-        )}
-
-        {channels.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No channels yet — sync your YouTube subscriptions to get started.
-          </p>
-        )}
-
-        {channels.length > 0 && visibleGroups.length === 0 && !showUntagged && (
-          <p className="text-sm text-muted-foreground">No channels in this topic.</p>
+        {allSectionIds.length > 1 && (
+          <button
+            onClick={() => setOpenSections(allOpen ? [] : allSectionIds)}
+            className="ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {allOpen ? 'Collapse all' : 'Expand all'}
+          </button>
         )}
       </div>
+
+      {/* Grouped accordion sections */}
+      {(visibleGroups.length > 0 || showUntagged) ? (
+        <Accordion
+          type="multiple"
+          value={openSections}
+          onValueChange={setOpenSections}
+          className="space-y-2"
+        >
+          {visibleGroups.map(({ tag, channels: groupChannels }) => (
+            <AccordionItem
+              key={tag.id}
+              value={tag.id}
+              className="border rounded-lg px-4"
+            >
+              <AccordionTrigger className="hover:no-underline py-3 [&>svg]:shrink-0">
+                <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: tag.color || '#6366f1' }}
+                  />
+                  <span className="text-sm font-semibold">{tag.name}</span>
+                  <span className="text-xs text-muted-foreground">({groupChannels.length})</span>
+                  <div className="flex-1" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground/40 hover:text-destructive transition-colors shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startTransition(() => deleteTagAction(tag.id));
+                    }}
+                    title="Delete topic"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4 pt-1 [&_a]:no-underline">
+                <ChannelGrid channels={groupChannels} allTags={allTags} />
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+
+          {showUntagged && (
+            <AccordionItem value="untagged" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-muted-foreground">Untagged</span>
+                  <span className="text-xs text-muted-foreground">({untagged.length})</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4 pt-1 [&_a]:no-underline">
+                <ChannelGrid channels={untagged} allTags={allTags} />
+              </AccordionContent>
+            </AccordionItem>
+          )}
+        </Accordion>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          {channels.length === 0
+            ? 'No channels yet — sync your YouTube subscriptions to get started.'
+            : 'No channels in this topic.'}
+        </p>
+      )}
     </div>
   );
 }
@@ -160,28 +192,30 @@ function ChannelGrid({
   allTags: Tag[];
 }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
+    <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
       {channels.map((channel) => (
         <div key={channel.id} className="group/chtopic relative">
           <Link href={`/channels/${channel.id}`}>
-            <Card className="overflow-hidden transition-all duration-200 hover:scale-[1.015] hover:shadow-lg hover:shadow-black/8 dark:hover:shadow-black/30">
-              <CardContent className="px-2.5 py-2 flex items-center gap-2">
-                <Avatar className="h-7 w-7 shrink-0 ring-1 ring-border transition-all group-hover/chtopic:ring-primary/40">
+            <div className="flex flex-col items-center gap-1 p-1.5 rounded-lg hover:bg-muted/50 transition-colors text-center">
+              <div className="relative">
+                <Avatar className="h-12 w-12 ring-2 ring-transparent transition-all group-hover/chtopic:ring-primary/50">
                   <AvatarImage src={channel.thumbnail || undefined} alt={channel.title} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-heading font-semibold text-xs">
+                  <AvatarFallback className="bg-primary/10 text-primary font-heading font-bold text-base">
                     {channel.title.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-xs truncate leading-tight">{channel.customName || channel.title}</p>
-                  {channel.unwatchedCount > 0 && (
-                    <span className="text-[10px] text-primary font-medium">{channel.unwatchedCount} new</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                {channel.unwatchedCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center leading-none">
+                    {channel.unwatchedCount > 99 ? '99+' : channel.unwatchedCount}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] font-medium leading-tight line-clamp-2 w-full">
+                {channel.customName || channel.title}
+              </p>
+            </div>
           </Link>
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute -top-1 -right-1 z-10 opacity-0 group-hover/chtopic:opacity-100 transition-opacity">
             <TagAssignPopover
               channelId={channel.id}
               allTags={allTags}

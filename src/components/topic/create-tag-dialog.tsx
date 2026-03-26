@@ -16,15 +16,18 @@ import { cn } from '@/lib/utils';
 import { createTagAction } from '@/actions/tags';
 
 const COLORS = [
-  '#ef4444',
-  '#f97316',
-  '#eab308',
-  '#22c55e',
-  '#06b6d4',
-  '#6366f1',
-  '#8b5cf6',
-  '#ec4899',
-  '#6b7280',
+  // Reds / pinks
+  '#ef4444', '#f43f5e', '#ec4899', '#db2777',
+  // Oranges / yellows
+  '#f97316', '#fb923c', '#eab308', '#ca8a04',
+  // Greens
+  '#22c55e', '#16a34a', '#84cc16', '#10b981',
+  // Blues / cyans
+  '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb',
+  // Purples / violets
+  '#6366f1', '#4f46e5', '#8b5cf6', '#7c3aed',
+  // Neutrals
+  '#6b7280', '#475569', '#a16207', '#92400e',
 ];
 
 export function CreateTagDialog() {
