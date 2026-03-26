@@ -160,39 +160,23 @@ function ChannelGrid({
   allTags: Tag[];
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
       {channels.map((channel) => (
         <div key={channel.id} className="group/chtopic relative">
           <Link href={`/channels/${channel.id}`}>
             <Card className="overflow-hidden transition-all duration-200 hover:scale-[1.015] hover:shadow-lg hover:shadow-black/8 dark:hover:shadow-black/30">
-              <CardContent className="p-3 flex items-center gap-3">
-                <Avatar className="h-10 w-10 shrink-0 ring-2 ring-border transition-all group-hover/chtopic:ring-primary/40">
+              <CardContent className="px-2.5 py-2 flex items-center gap-2">
+                <Avatar className="h-7 w-7 shrink-0 ring-1 ring-border transition-all group-hover/chtopic:ring-primary/40">
                   <AvatarImage src={channel.thumbnail || undefined} alt={channel.title} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-heading font-semibold text-sm">
+                  <AvatarFallback className="bg-primary/10 text-primary font-heading font-semibold text-xs">
                     {channel.title.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{channel.customName || channel.title}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    {channel.unwatchedCount > 0 && (
-                      <span className="text-xs text-primary font-medium">
-                        {channel.unwatchedCount} new
-                      </span>
-                    )}
-                    {channel.tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                        style={{
-                          backgroundColor: `${tag.color}22`,
-                          color: tag.color || undefined,
-                        }}
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
+                  <p className="font-medium text-xs truncate leading-tight">{channel.customName || channel.title}</p>
+                  {channel.unwatchedCount > 0 && (
+                    <span className="text-[10px] text-primary font-medium">{channel.unwatchedCount} new</span>
+                  )}
                 </div>
               </CardContent>
             </Card>
