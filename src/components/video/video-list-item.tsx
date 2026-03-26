@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { formatRelativeTime } from '@/lib/utils/time';
 import { formatDuration, formatViewCount } from '@/lib/youtube/transformers';
 import Image from 'next/image';
-import { BookmarkCheck, Check, CheckCircle2 } from 'lucide-react';
+import { Check, CheckCircle2, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toggleWatched } from '@/actions/videos';
@@ -46,7 +46,7 @@ export function VideoListItem({ video, channelTitle, isWatched, hasNote }: Video
           'transition-all duration-150 hover:shadow-sm',
           isWatched && 'opacity-55',
           hasNote
-            ? 'border-l-[3px] border-l-primary border-border/60 hover:border-border/80 shadow-sm shadow-primary/10'
+            ? 'border-l-[3px] border-l-amber-400 border-border/60 hover:border-border/80 shadow-sm shadow-amber-400/10'
             : 'border-border/60 hover:border-border'
         )}
         onClick={handleClick}
@@ -107,9 +107,9 @@ export function VideoListItem({ video, channelTitle, isWatched, hasNote }: Video
             )}
           </p>
           {hasNote && (
-            <span className="inline-flex items-center gap-1 mt-1 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary tracking-wide w-fit">
-              <BookmarkCheck className="h-3 w-3" />
-              NOTED
+            <span className="inline-flex items-center gap-1 mt-1 rounded bg-amber-400/15 px-1.5 py-0.5 w-fit">
+              <StickyNote className="h-3 w-3 text-amber-500" />
+              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 tracking-wide">NOTED</span>
             </span>
           )}
         </div>

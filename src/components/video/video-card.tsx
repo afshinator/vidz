@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { formatRelativeTime } from '@/lib/utils/time';
 import { formatDuration, formatViewCount } from '@/lib/youtube/transformers';
 import Image from 'next/image';
-import { BookmarkCheck, Check, CheckCircle2 } from 'lucide-react';
+import { Check, CheckCircle2, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -48,7 +48,7 @@ export function VideoCard({ video, channelTitle, isWatched, hasNote }: VideoCard
           'overflow-hidden gap-0 py-0 transition-all duration-200 group/card cursor-pointer',
           'hover:scale-[1.025] hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/40',
           isWatched && 'opacity-55',
-          hasNote && 'ring-2 ring-primary shadow-lg shadow-primary/25'
+          hasNote && 'ring-2 ring-amber-400 shadow-lg shadow-amber-400/20'
         )}
         onClick={handleCardClick}
       >
@@ -78,9 +78,8 @@ export function VideoCard({ video, channelTitle, isWatched, hasNote }: VideoCard
 
           {/* Noted badge */}
           {hasNote && (
-            <div className="absolute top-2 right-2 rounded-md bg-primary px-1.5 py-0.5 flex items-center gap-1 shadow-sm">
-              <BookmarkCheck className="h-3 w-3 text-primary-foreground" />
-              <span className="text-[10px] font-semibold text-primary-foreground tracking-wide">NOTED</span>
+            <div className="absolute top-2 right-2 rounded-md bg-amber-400 p-1 shadow-sm">
+              <StickyNote className="h-3.5 w-3.5 text-amber-950" />
             </div>
           )}
 
