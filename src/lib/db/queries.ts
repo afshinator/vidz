@@ -10,8 +10,9 @@ import {
   channelTags,
   syncState,
   appSettings,
+  videoNotes,
 } from './schema';
-import type { Channel, Video, Topic, Tag, AppSettings } from './schema';
+import type { Channel, Video, Topic, Tag, AppSettings, VideoNote } from './schema';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -478,4 +479,81 @@ export function deleteTag(tagId: string, userId: string): Promise<void> {
     .set({ deletedAt: new Date() })
     .where(and(eq(tags.id, tagId), eq(tags.userId, userId)))
     .then();
+}
+
+export type VideoNoteWithVideo = VideoNote & {
+  video: {
+    id: string;
+    title: string;
+    thumbnail: string | null;
+    channelTitle: string;
+    publishedAt: Date;
+    duration: string | null;
+  };
+};
+
+export function addVideoNote(data: { userId: string; videoId: string; notes?: string }): Promise<VideoNote> {
+  return getDb()
+    .insert(videoNotes)
+    .values({
+      id: crypto.randomUUID(),
+      userId: data.userId,
+      videoId: data.videoId,
+      notes: data.notes ?? null,
+    })
+    .returning()
+    .then((r) => r[0]);
+}
+
+export function deleteVideoNote(noteId: string, userId: string): Promise<void> {
+  return getDb()
+    .delete(videoNotes)
+    .where(and(eq(videoNotes.id, noteId), eq(videoNotes.userId, userId)))
+    .then();
+}
+
+export async function getVideoNotesByUser(userId: string): Promise<VideoNoteWithVideo[]> {
+  const rows = await getDb()
+    .select({
+      id: videoNotes.id,
+      userId: videoNotes.userId,
+      videoId: videoNotes.videoId,
+      notes: videoNotes.notes,
+      createdAt: videoNotes.createdAt,
+      videoTitle: videos.title,
+      videoThumbnail: videos.thumbnail,
+      videoPublishedAt: videos.publishedAt,
+      videoDuration: videos.duration,
+      channelTitle: channels.title,
+    })
+    .from(videoNotes)
+    .innerJoin(videos, eq(videoNotes.videoId, videos.id))
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(eq(videoNotes.userId, userId))
+    .orderBy(desc(videoNotes.createdAt));
+
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.userId,
+    videoId: r.videoId,
+    notes: r.notes,
+    createdAt: r.createdAt,
+    video: {
+      id: r.videoId,
+      title: r.videoTitle,
+      thumbnail: r.videoThumbnail,
+      channelTitle: r.channelTitle,
+      publishedAt: r.videoPublishedAt,
+      duration: r.videoDuration,
+    },
+  }));
+}
+
+export function getNoteByVideo(userId: string, videoId: string): Promise<VideoNote | undefined> {
+  return getDb()
+    .select()
+    .from(videoNotes)
+    .where(and(eq(videoNotes.userId, userId), eq(videoNotes.videoId, videoId)))
+    .limit(1)
+    .then((r) => r[0]);
 }

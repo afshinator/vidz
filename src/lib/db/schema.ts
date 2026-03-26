@@ -97,9 +97,21 @@ export const appSettings = pgTable('app_settings', {
   lastSyncAt: timestamp('last_sync_at'),
 });
 
+export const videoNotes = pgTable('video_notes', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  videoId: text('video_id').references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  userIdIdx: index('video_notes_user_id_idx').on(table.userId),
+  createdAtIdx: index('video_notes_created_at_idx').on(table.createdAt),
+}));
+
 export type Channel = typeof channels.$inferSelect;
 export type Video = typeof videos.$inferSelect;
 export type Watched = typeof watched.$inferSelect;
 export type Topic = typeof topics.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
 export type AppSettings = typeof appSettings.$inferSelect;
+export type VideoNote = typeof videoNotes.$inferSelect;
