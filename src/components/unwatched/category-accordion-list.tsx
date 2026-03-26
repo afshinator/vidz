@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { VideoCard } from '@/components/video/video-card';
+import { VideoGrid } from '@/components/video/video-grid';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Video } from '@/lib/db/schema';
@@ -17,7 +17,7 @@ export interface CategoryGroup {
 
 export function CategoryAccordionList({ groups }: { groups: CategoryGroup[] }) {
   const allSlugs = groups.map((g) => g.slug);
-  const [openItems, setOpenItems] = useState<string[]>(allSlugs);
+  const [openItems, setOpenItems] = useState<string[]>([]);
 
   const allOpen = openItems.length === groups.length;
 
@@ -53,17 +53,8 @@ export function CategoryAccordionList({ groups }: { groups: CategoryGroup[] }) {
                 <Badge variant="secondary">{group.videos.length}</Badge>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="[&_a]:no-underline pb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-                {group.videos.map((video) => (
-                  <VideoCard
-                    key={video.id}
-                    video={video}
-                    channelTitle={video.channelTitle}
-                    isWatched={false}
-                  />
-                ))}
-              </div>
+            <AccordionContent className="[&_a]:no-underline pb-4 pt-2">
+              <VideoGrid videos={group.videos} />
             </AccordionContent>
           </AccordionItem>
         ))}

@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { SidebarChannelList } from '@/components/layout/sidebar-extra';
 import { CategoryAccordionList } from '@/components/unwatched/category-accordion-list';
 import type { CategoryGroup } from '@/components/unwatched/category-accordion-list';
+import { ChannelsCloud } from '@/components/unwatched/channels-cloud';
+import type { ChannelCount } from '@/components/unwatched/channels-cloud';
 import { matchesTopic } from '@/lib/topics/matcher';
 import { getCategoryById } from '@/lib/topics/categorizer';
 import type { Video, Topic } from '@/lib/db/schema';
@@ -20,7 +22,6 @@ function groupByCategory(videos: UnwatchedVideo[], topics: Topic[]): CategoryGro
   for (const video of videos) {
     let categoryName = 'Uncategorized';
 
-    // Topic match first (keyword-based personal categories)
     for (const topic of topics) {
       if (topic.keywords?.length && matchesTopic(video, topic.keywords)) {
         categoryName = topic.name;
@@ -28,7 +29,6 @@ function groupByCategory(videos: UnwatchedVideo[], topics: Topic[]): CategoryGro
       }
     }
 
-    // Fall back to YouTube built-in category
     if (categoryName === 'Uncategorized' && video.categoryId) {
       const ytCategory = getCategoryById(video.categoryId);
       if (ytCategory) categoryName = ytCategory.name;
@@ -43,12 +43,25 @@ function groupByCategory(videos: UnwatchedVideo[], topics: Topic[]): CategoryGro
     group.videos.push(video);
   }
 
-  // Sort alphabetically, Uncategorized always last
   return Array.from(map.values()).sort((a, b) => {
     if (a.name === 'Uncategorized') return 1;
     if (b.name === 'Uncategorized') return -1;
     return a.name.localeCompare(b.name);
   });
+}
+
+function countByChannel(videos: UnwatchedVideo[]): ChannelCount[] {
+  const map = new Map<string, ChannelCount>();
+  for (const video of videos) {
+    if (!video.channelId) continue;
+    const entry = map.get(video.channelId);
+    if (entry) {
+      entry.count++;
+    } else {
+      map.set(video.channelId, { id: video.channelId, title: video.channelTitle, count: 1 });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.count - a.count);
 }
 
 export default async function UnwatchedPage() {
@@ -65,6 +78,7 @@ export default async function UnwatchedPage() {
 
   const allVideos = result.data;
   const groups = groupByCategory(allVideos, topics);
+  const channelCounts = countByChannel(allVideos);
   const totalCount = allVideos.length;
   const categoryCount = groups.length;
 
@@ -82,34 +96,43 @@ export default async function UnwatchedPage() {
         </div>
       ) : (
         <div className="mt-6 space-y-6">
-          {/* Summary + category anchor links */}
+          {/* Summary card */}
           <Card>
             <CardContent className="py-4 space-y-3">
+              {/* Counts row */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{totalCount}</span>
+                  <span className="text-2xl font-bold font-heading">{totalCount}</span>
                   <span className="text-sm text-muted-foreground">
                     unwatched {totalCount === 1 ? 'video' : 'videos'}
                   </span>
                 </div>
                 <div className="h-6 w-px bg-border" />
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{categoryCount}</span>
+                  <span className="text-2xl font-bold font-heading">{categoryCount}</span>
                   <span className="text-sm text-muted-foreground">
                     {categoryCount === 1 ? 'category' : 'categories'}
                   </span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+
+              {/* Category anchor badges */}
+              <div className="flex flex-wrap gap-1.5">
                 {groups.map((group) => (
                   <a key={group.slug} href={`#${group.slug}`}>
-                    <Badge variant="secondary" className="cursor-pointer hover:bg-muted-foreground/20 transition-colors">
+                    <Badge
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
                       {group.name}
-                      <span className="ml-1.5 text-muted-foreground">{group.videos.length}</span>
+                      <span className="ml-1.5 font-semibold tabular-nums">{group.videos.length}</span>
                     </Badge>
                   </a>
                 ))}
               </div>
+
+              {/* Channel cloud — collapsible */}
+              <ChannelsCloud channels={channelCounts} />
             </CardContent>
           </Card>
 

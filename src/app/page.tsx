@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getUnwatchedVideos, getTopicsByUser, getChannelsByUser } from '@/lib/db/queries';
 import { Header } from '@/components/layout/header';
-import { VideoCard } from '@/components/video/video-card';
+import { VideoGrid } from '@/components/video/video-grid';
 import { TopicCard } from '@/components/topic/topic-card';
 import { ChannelCard } from '@/components/channel/channel-card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,14 +16,14 @@ export default async function DashboardPage() {
   if (!session?.user?.id) {
     redirect('/api/auth/signin');
   }
-  
+
   const [unwatchedVideosResult, topics, channels] = await Promise.all([
     getUnwatchedVideos(session.user.id, 8),
-    getTopicsByUser(session.user.id).then(t => t.slice(0, 4)),
-    getChannelsByUser(session.user.id).then(c => c.slice(0, 4)),
+    getTopicsByUser(session.user.id).then((t) => t.slice(0, 4)),
+    getChannelsByUser(session.user.id).then((c) => c.slice(0, 4)),
   ]);
   const unwatchedVideos = unwatchedVideosResult.data;
-  
+
   return (
     <>
       <Header
@@ -31,42 +31,33 @@ export default async function DashboardPage() {
         subtitle={`Welcome back${session.user.name ? `, ${session.user.name.split(' ')[0]}` : ''}`}
         actions={<SyncButton />}
       />
-      
-      <div className="mt-6 space-y-8">
+
+      <div className="space-y-8">
         {unwatchedVideos.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">
                 Unwatched ({unwatchedVideos.length})
               </h2>
-              <Link href="/unwatched">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/unwatched">
+                  View All <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Link>
+              </Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {unwatchedVideos.map((video) => (
-                <VideoCard
-                  key={video.id}
-                  video={video}
-                  channelTitle={video.channelTitle}
-                  isWatched={false}
-                />
-              ))}
-            </div>
+            <VideoGrid videos={unwatchedVideos} />
           </section>
         )}
-        
+
         {topics.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Your Topics</h2>
-              <Link href="/topics">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/topics">
+                  View All <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Link>
+              </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {topics.map((topic) => (
@@ -75,16 +66,16 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
-        
+
         {channels.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Your Channels</h2>
-              <Link href="/channels">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/channels">
+                  View All <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Link>
+              </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {channels.map((channel) => (
@@ -95,7 +86,7 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
-        
+
         {unwatchedVideos.length === 0 && topics.length === 0 && channels.length === 0 && (
           <EmptyState
             title="No data yet"

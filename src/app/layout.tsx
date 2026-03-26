@@ -35,7 +35,7 @@ export default function RootLayout({
             <Sidebar />
             <div className="flex-1">
               <MobileNav />
-              <main className="p-4 md:p-6">
+              <main className="px-4 md:px-6 pb-6">
                 {children}
               </main>
             </div>

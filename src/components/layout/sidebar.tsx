@@ -32,13 +32,13 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-all duration-150',
               isActive
                 ? 'bg-primary/10 text-primary font-semibold'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             )}
           >
-            <item.icon className={cn('h-4 w-4', isActive && 'text-primary')} />
+            <item.icon className={cn('h-[18px] w-[18px]', isActive && 'text-primary')} />
             {item.label}
           </Link>
         );
