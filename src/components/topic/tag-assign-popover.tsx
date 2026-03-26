@@ -57,7 +57,6 @@ export function TagAssignPopover({ channelId, allTags, assignedTagIds }: TagAssi
           variant="ghost"
           size="sm"
           className="h-7 px-2 text-xs text-muted-foreground opacity-0 group-hover/chtopic:opacity-100 transition-opacity"
-          onClick={(e) => e.preventDefault()}
         >
           <Tag className="h-3 w-3 mr-1" />
           Tag
