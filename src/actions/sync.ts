@@ -84,7 +84,7 @@ export async function syncNowAction(): Promise<SyncResult> {
         let channelVideoCount = 0;
         do {
           const { videos, nextPageToken } = await getChannelVideos(accessToken, channelId, videoPageToken);
-          quotaUsed += 1;
+          quotaUsed += 2; // 1 for /playlistItems + 1 for /videos details batch
 
           for (const video of videos) {
             try {

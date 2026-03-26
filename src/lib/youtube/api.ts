@@ -24,12 +24,12 @@ async function fetchYouTube<T>(
 
   if (!response.ok) {
     const error = await response.json();
-    if (error.error?.code === 403) {
-      throw new YouTubeQuotaError(
-        'YouTube API quota exceeded',
-        DAILY_QUOTA,
-        0
-      );
+    if (response.status === 403) {
+      const reason = error.error?.errors?.[0]?.reason;
+      if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
+        throw new YouTubeQuotaError('YouTube API quota exceeded', DAILY_QUOTA, 0);
+      }
+      throw new Error(error.error?.message || 'YouTube API access forbidden. Check OAuth scopes and credentials.');
     }
     throw new Error(error.error?.message || 'YouTube API error');
   }
@@ -112,41 +112,65 @@ export async function getChannelVideos(
   channelId: string,
   pageToken?: string
 ): Promise<{ videos: YouTubeVideo[]; nextPageToken?: string }> {
-  const { data } = await fetchYouTube<{
+  // Derive uploads playlist ID from channel ID: UC... -> UU...
+  // This avoids the /search endpoint which costs 100 quota units per call.
+  const uploadsPlaylistId = 'UU' + channelId.slice(2);
+
+  const { data: playlistData } = await fetchYouTube<{
     items: Array<{
-      id: { videoId: string };
       snippet: {
         title: string;
         description: string;
         thumbnails: { medium?: { url: string }; high?: { url: string } };
         publishedAt: string;
         channelId: string;
+        resourceId: { videoId: string };
       };
-      contentDetails?: { duration: string };
-      statistics?: { viewCount: string };
     }>;
     nextPageToken?: string;
-  }>('/search', accessToken, {
-    channelId,
-    part: 'snippet,contentDetails,statistics',
+  }>('/playlistItems', accessToken, {
+    playlistId: uploadsPlaylistId,
+    part: 'snippet',
     maxResults: '50',
-    order: 'date',
-    type: 'video',
     ...(pageToken && { pageToken }),
   });
 
+  if (!playlistData.items?.length) {
+    return { videos: [], nextPageToken: undefined };
+  }
+
+  const videoIds = playlistData.items.map((item) => item.snippet.resourceId.videoId);
+
+  // Batch fetch duration + viewCount for this page of videos (1 unit for up to 50)
+  const { data: videoData } = await fetchYouTube<{
+    items: Array<{
+      id: string;
+      contentDetails: { duration: string };
+      statistics: { viewCount: string };
+    }>;
+  }>('/videos', accessToken, {
+    id: videoIds.join(','),
+    part: 'contentDetails,statistics',
+  });
+
+  const detailsMap = new Map(videoData.items.map((item) => [item.id, item]));
+
   return {
-    videos: data.items.map((item) => ({
-      id: item.id.videoId,
-      channelId: item.snippet.channelId,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || '',
-      publishedAt: item.snippet.publishedAt,
-      duration: item.contentDetails?.duration || 'PT0M0S',
-      viewCount: parseInt(item.statistics?.viewCount || '0', 10),
-    })),
-    nextPageToken: data.nextPageToken,
+    videos: playlistData.items.map((item) => {
+      const videoId = item.snippet.resourceId.videoId;
+      const details = detailsMap.get(videoId);
+      return {
+        id: videoId,
+        channelId: item.snippet.channelId,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || '',
+        publishedAt: item.snippet.publishedAt,
+        duration: details?.contentDetails.duration || 'PT0M0S',
+        viewCount: parseInt(details?.statistics.viewCount || '0', 10),
+      };
+    }),
+    nextPageToken: playlistData.nextPageToken,
   };
 }
 
