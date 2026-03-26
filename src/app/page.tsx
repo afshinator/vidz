@@ -6,9 +6,10 @@ import { VideoCard } from '@/components/video/video-card';
 import { TopicCard } from '@/components/topic/topic-card';
 import { ChannelCard } from '@/components/channel/channel-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { SyncButton } from '@/components/sync-button';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, RefreshCw } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -28,12 +29,7 @@ export default async function DashboardPage() {
       <Header
         title="Dashboard"
         subtitle={`Welcome back${session.user.name ? `, ${session.user.name.split(' ')[0]}` : ''}`}
-        actions={
-          <Button variant="outline" size="sm">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Sync Now
-          </Button>
-        }
+        actions={<SyncButton />}
       />
       
       <div className="mt-6 space-y-8">
@@ -104,12 +100,7 @@ export default async function DashboardPage() {
           <EmptyState
             title="No data yet"
             description="Sync your YouTube subscriptions to get started"
-            action={
-              <Button>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Sync Now
-              </Button>
-            }
+            action={<SyncButton />}
           />
         )}
       </div>
