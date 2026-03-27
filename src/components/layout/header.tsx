@@ -13,17 +13,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
+import { useState } from 'react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface HeaderProps {
   title?: string;
@@ -35,6 +33,7 @@ interface HeaderProps {
 export function Header({ title, subtitle, actions, showViewToggle = true }: HeaderProps) {
   const { setTheme, resolvedTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode();
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-sm -mx-4 md:-mx-6 px-4 md:px-6 py-3.5 mb-6">
@@ -97,31 +96,31 @@ export function Header({ title, subtitle, actions, showViewToggle = true }: Head
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground text-sm"
-            >
-              Sign out
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Sign out?</AlertDialogTitle>
-              <AlertDialogDescription>
-                You can sign back in at any time. Note: if you have revoked app access via{' '}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSignOutOpen(true)}
+          className="text-muted-foreground hover:text-foreground text-sm"
+        >
+          Sign out
+        </Button>
+
+        <Dialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Sign out?</DialogTitle>
+              <DialogDescription>
+                You can sign back in at any time. Note: if you have revoked app access via
                 myaccount.google.com/permissions, signing back in will not automatically restore
                 YouTube sync — you will need to re-authorize the app to get a new refresh token.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => signOut()}>Sign out</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSignOutOpen(false)}>Cancel</Button>
+              <Button onClick={() => signOut()}>Sign out</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   );
