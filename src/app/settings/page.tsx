@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TIMEZONES } from '@/lib/utils/time';
 import { ThemeSelector } from '@/components/settings/theme-selector';
+import { BackfillCategoriesButton } from '@/components/settings/backfill-categories-button';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -91,6 +92,13 @@ export default async function SettingsPage() {
                   <SelectItem value="360">Every 6 hours</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Category data</Label>
+              <p className="text-sm text-muted-foreground">
+                Populate missing YouTube category data for existing videos.
+              </p>
+              <BackfillCategoriesButton />
             </div>
           </CardContent>
         </Card>

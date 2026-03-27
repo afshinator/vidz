@@ -2,9 +2,9 @@
 
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
-import { getSubscriptions, getChannelVideos } from '@/lib/youtube/api';
+import { getSubscriptions, getChannelVideos, getVideoCategoryIds } from '@/lib/youtube/api';
 import { YouTubeQuotaError } from '@/lib/error';
-import { upsertChannel, upsertVideo, upsertSettings } from '@/lib/db/queries';
+import { upsertChannel, upsertVideo, upsertSettings, getVideoIdsWithNullCategoryId, updateVideoCategoryId } from '@/lib/db/queries';
 
 const QUOTA_LIMIT = 10000;
 const VIDEOS_PER_CHANNEL = 50;
@@ -154,4 +154,58 @@ export async function syncNowAction(): Promise<SyncResult> {
       message: `Sync failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
     };
   }
+}
+
+interface BackfillResult {
+  success: boolean;
+  updated: number;
+  skipped: number;
+  quotaUsed: number;
+  message: string;
+}
+
+export async function backfillCategoryIdsAction(): Promise<BackfillResult> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error('Unauthorized');
+
+  const accessToken = session.accessToken;
+  if (!accessToken) {
+    return { success: false, updated: 0, skipped: 0, quotaUsed: 0, message: 'No YouTube access token. Please reconnect your Google account.' };
+  }
+
+  const videoIds = await getVideoIdsWithNullCategoryId();
+  if (videoIds.length === 0) {
+    return { success: true, updated: 0, skipped: 0, quotaUsed: 0, message: 'All videos already have category data.' };
+  }
+
+  let updated = 0;
+  let skipped = 0;
+  let quotaUsed = 0;
+
+  // Process in batches of 50 (YouTube API limit per request)
+  for (let i = 0; i < videoIds.length; i += 50) {
+    const batch = videoIds.slice(i, i + 50);
+    const categoryMap = await getVideoCategoryIds(accessToken, batch);
+    quotaUsed += 1;
+
+    for (const videoId of batch) {
+      const categoryId = categoryMap.get(videoId);
+      if (categoryId) {
+        await updateVideoCategoryId(videoId, categoryId);
+        updated++;
+      } else {
+        skipped++;
+      }
+    }
+  }
+
+  revalidatePath('/unwatched');
+
+  return {
+    success: true,
+    updated,
+    skipped,
+    quotaUsed,
+    message: `Updated ${updated} video${updated !== 1 ? 's' : ''} with category data.${skipped > 0 ? ` ${skipped} video${skipped !== 1 ? 's' : ''} had no category available.` : ''}`,
+  };
 }

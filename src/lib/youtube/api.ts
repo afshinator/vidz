@@ -198,3 +198,17 @@ export async function getWatchHistory(
     nextPageToken: data.nextPageToken,
   };
 }
+
+export async function getVideoCategoryIds(
+  accessToken: string,
+  videoIds: string[]
+): Promise<Map<string, string>> {
+  const { data } = await fetchYouTube<{
+    items: Array<{ id: string; snippet: { categoryId: string } }>;
+  }>('/videos', accessToken, {
+    id: videoIds.join(','),
+    part: 'snippet',
+  });
+
+  return new Map(data.items.map((item) => [item.id, item.snippet.categoryId]));
+}

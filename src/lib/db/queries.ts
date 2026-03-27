@@ -371,6 +371,22 @@ export function upsertChannel(
     .then((r) => r[0]);
 }
 
+export function getVideoIdsWithNullCategoryId(): Promise<string[]> {
+  return getDb()
+    .select({ id: videos.id })
+    .from(videos)
+    .where(isNull(videos.categoryId))
+    .then((rows) => rows.map((r) => r.id));
+}
+
+export function updateVideoCategoryId(videoId: string, categoryId: string): Promise<void> {
+  return getDb()
+    .update(videos)
+    .set({ categoryId })
+    .where(eq(videos.id, videoId))
+    .then(() => undefined);
+}
+
 export function upsertVideo(video: Omit<Video, 'fetchedAt'>): Promise<Video> {
   return getDb()
     .insert(videos)
