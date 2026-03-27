@@ -18,8 +18,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
+      if (session.user && session.user.email) {
+        session.user.id = session.user.email;
         session.accessToken = token.accessToken as string;
       }
       return session;

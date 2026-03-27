@@ -67,7 +67,6 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <div className="text-xs text-muted-foreground p-2">Session User ID: {session.user.id}</div>
       <Header
         title="Dashboard"
         subtitle={`Welcome back${session.user.name ? `, ${session.user.name.split(' ')[0]}` : ''}`}
