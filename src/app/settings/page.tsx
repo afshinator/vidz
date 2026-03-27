@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TIMEZONES } from '@/lib/utils/time';
 import { ThemeSelector } from '@/components/settings/theme-selector';
 import { BackfillCategoriesButton } from '@/components/settings/backfill-categories-button';
+import { Info } from 'lucide-react';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -23,6 +24,18 @@ export default async function SettingsPage() {
       <Header title="Settings" />
       
       <div className="mt-6 space-y-6 max-w-2xl">
+        <div className="flex gap-3 rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <Info className="h-4 w-4 mt-0.5 shrink-0" />
+          <p>
+            Signed in as <span className="font-medium text-foreground">{session.user.id}</span>.
+            If you ever revoke app access via{' '}
+            <span className="font-medium text-foreground">myaccount.google.com/permissions</span>,
+            you will need to sign out and back in — Google will not issue a new refresh token
+            automatically, which means YouTube sync will stop working after an hour.
+            If that happens, contact yourself to re-authorize.
+          </p>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
