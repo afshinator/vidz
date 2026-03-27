@@ -53,9 +53,6 @@ function groupByTag(videos: UnwatchedVideoWithTags[]): TagGroup[] {
 export default async function DashboardPage() {
   const session = await auth();
 
-console.log('SESSION USER: ', session.user)
-
-  
   if (!session?.user?.id) {
     redirect('/api/auth/signin');
   }
