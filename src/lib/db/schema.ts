@@ -108,6 +108,17 @@ export const videoNotes = pgTable('video_notes', {
   createdAtIdx: index('video_notes_created_at_idx').on(table.createdAt),
 }));
 
+export const watchlist = pgTable('watchlist', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  videoId: text('video_id').references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  addedAt: timestamp('added_at').defaultNow(),
+}, (table) => ({
+  userIdIdx: index('watchlist_user_id_idx').on(table.userId),
+  videoIdIdx: index('watchlist_video_id_idx').on(table.videoId),
+  addedAtIdx: index('watchlist_added_at_idx').on(table.addedAt),
+}));
+
 export type Channel = typeof channels.$inferSelect;
 export type Video = typeof videos.$inferSelect;
 export type Watched = typeof watched.$inferSelect;
@@ -115,3 +126,4 @@ export type Topic = typeof topics.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
 export type AppSettings = typeof appSettings.$inferSelect;
 export type VideoNote = typeof videoNotes.$inferSelect;
+export type Watchlist = typeof watchlist.$inferSelect;

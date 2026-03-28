@@ -1,7 +1,7 @@
 'use server';
 
 import { auth } from '@/auth';
-import { markVideoWatched, markVideoUnwatched, getVideoById } from '@/lib/db/queries';
+import { markVideoWatched, markVideoUnwatched, getVideoById, addToWatchlist, removeFromWatchlist } from '@/lib/db/queries';
 import { revalidatePath } from 'next/cache';
 
 async function verifyVideoOwnership(videoId: string, userId: string) {
@@ -39,6 +39,7 @@ export async function markAsWatchedAction(videoId: string) {
   await verifyVideoOwnership(videoId, session.user.id);
   await markVideoWatched(videoId);
   revalidatePath('/');
+  revalidatePath('/unwatched');
   revalidatePath('/tags');
   revalidatePath('/channels');
 }
@@ -54,4 +55,25 @@ export async function markAsUnwatchedAction(videoId: string) {
   revalidatePath('/');
   revalidatePath('/tags');
   revalidatePath('/channels');
+}
+
+export async function addToWatchlistAction(videoId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized');
+  }
+  
+  await verifyVideoOwnership(videoId, session.user.id);
+  await addToWatchlist(session.user.id, videoId);
+  revalidatePath('/watchlist');
+}
+
+export async function removeFromWatchlistAction(watchlistId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized');
+  }
+  
+  await removeFromWatchlist(watchlistId, session.user.id);
+  revalidatePath('/watchlist');
 }

@@ -11,8 +11,9 @@ import {
   syncState,
   appSettings,
   videoNotes,
+  watchlist,
 } from './schema';
-import type { Channel, Video, Topic, Tag, AppSettings, VideoNote } from './schema';
+import type { Channel, Video, Topic, Tag, AppSettings, VideoNote, Watchlist } from './schema';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -579,5 +580,89 @@ export function getNotedVideoIds(userId: string): Promise<string[]> {
     .select({ videoId: videoNotes.videoId })
     .from(videoNotes)
     .where(eq(videoNotes.userId, userId))
+    .then((rows) => rows.map((r) => r.videoId));
+}
+
+export type WatchlistVideo = {
+  id: string;
+  videoId: string;
+  addedAt: Date | null;
+  video: {
+    id: string;
+    title: string;
+    thumbnail: string | null;
+    channelTitle: string;
+    publishedAt: Date;
+    duration: string | null;
+  };
+};
+
+export async function getWatchlistByUser(userId: string): Promise<WatchlistVideo[]> {
+  const rows = await getDb()
+    .select({
+      id: watchlist.id,
+      videoId: watchlist.videoId,
+      addedAt: watchlist.addedAt,
+      videoTitle: videos.title,
+      videoThumbnail: videos.thumbnail,
+      videoPublishedAt: videos.publishedAt,
+      videoDuration: videos.duration,
+      channelTitle: channels.title,
+    })
+    .from(watchlist)
+    .innerJoin(videos, eq(watchlist.videoId, videos.id))
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(eq(watchlist.userId, userId))
+    .orderBy(desc(watchlist.addedAt));
+
+  return rows.map((r) => ({
+    id: r.id,
+    videoId: r.videoId,
+    addedAt: r.addedAt,
+    video: {
+      id: r.videoId,
+      title: r.videoTitle,
+      thumbnail: r.videoThumbnail,
+      channelTitle: r.channelTitle,
+      publishedAt: r.videoPublishedAt,
+      duration: r.videoDuration,
+    },
+  }));
+}
+
+export function addToWatchlist(userId: string, videoId: string): Promise<Watchlist> {
+  return getDb()
+    .insert(watchlist)
+    .values({
+      id: crypto.randomUUID(),
+      userId,
+      videoId,
+    })
+    .onConflictDoNothing()
+    .returning()
+    .then((r) => r[0]);
+}
+
+export function removeFromWatchlist(id: string, userId: string): Promise<void> {
+  return getDb()
+    .delete(watchlist)
+    .where(and(eq(watchlist.id, id), eq(watchlist.userId, userId)))
+    .then();
+}
+
+export function isVideoInWatchlist(userId: string, videoId: string): Promise<boolean> {
+  return getDb()
+    .select({ id: watchlist.id })
+    .from(watchlist)
+    .where(and(eq(watchlist.userId, userId), eq(watchlist.videoId, videoId)))
+    .limit(1)
+    .then((r) => r.length > 0);
+}
+
+export function getWatchlistVideoIds(userId: string): Promise<string[]> {
+  return getDb()
+    .select({ videoId: watchlist.videoId })
+    .from(watchlist)
+    .where(eq(watchlist.userId, userId))
     .then((rows) => rows.map((r) => r.videoId));
 }
