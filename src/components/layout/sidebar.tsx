@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Hash, Tv, Settings, Menu, X, PlayCircle, BookmarkCheck } from 'lucide-react';
+import { LayoutDashboard, Hash, Tv, Settings, Menu, X, PlayCircle, BookmarkCheck, Info } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/notes', label: 'Notes', icon: BookmarkCheck },
   { href: '/tags', label: 'Tags', icon: Hash },
   { href: '/channels', label: 'Channels', icon: Tv },
+  { href: '/about', label: 'About', icon: Info },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
