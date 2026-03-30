@@ -51,9 +51,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               const tokens = await response.json();
               token.accessToken = tokens.access_token;
               token.expiresAt = Math.floor(Date.now() / 1000) + tokens.expires_in;
+            } else {
+              token.accessToken = null;
             }
           } catch {
-            // Token refresh failed - let the user re-authenticate
+            token.accessToken = null;
           }
         }
       }
