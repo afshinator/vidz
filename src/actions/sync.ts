@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 import { getSubscriptions, getChannelVideos, getVideoCategoryIds } from '@/lib/youtube/api';
 import { YouTubeQuotaError } from '@/lib/error';
-import { upsertChannel, upsertVideo, upsertSettings, getVideoIdsWithNullCategoryId, updateVideoCategoryId } from '@/lib/db/queries';
+import { batchUpsertChannels, batchUpsertVideos, upsertSettings, getVideoIdsWithNullCategoryId, updateVideoCategoryId } from '@/lib/db/queries';
 
 const QUOTA_LIMIT = 10000;
 const VIDEOS_PER_CHANNEL = 50;
@@ -24,6 +24,7 @@ export async function syncNowAction(): Promise<SyncResult> {
     throw new Error('Unauthorized');
   }
 
+  const userId: string = session.user.id;
   const accessToken = session.accessToken;
   if (!accessToken) {
     return {
@@ -47,20 +48,20 @@ export async function syncNowAction(): Promise<SyncResult> {
       const { channels, nextPageToken } = await getSubscriptions(accessToken, pageToken);
       quotaUsed += 1;
 
-      for (const channel of channels) {
-        try {
-          await upsertChannel({
-            id: channel.id,
-            userId: session.user.id,
-            title: channel.title,
-            thumbnail: channel.thumbnail,
-            subscribedAt: channel.subscribedAt ? new Date(channel.subscribedAt) : null,
-          });
-          channelsSynced++;
-          channelIds.push(channel.id);
-        } catch (err) {
-          errors.push(`Failed to save channel ${channel.title}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        }
+      const channelValues = channels.map((channel) => ({
+        id: channel.id,
+        userId,
+        title: channel.title,
+        thumbnail: channel.thumbnail,
+        subscribedAt: channel.subscribedAt ? new Date(channel.subscribedAt) : null,
+      }));
+
+      try {
+        await batchUpsertChannels(channelValues);
+        channelsSynced += channelValues.length;
+        channelIds.push(...channelValues.map((c) => c.id));
+      } catch (err) {
+        errors.push(`Failed to save channels page: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
 
       pageToken = nextPageToken;
@@ -86,24 +87,24 @@ export async function syncNowAction(): Promise<SyncResult> {
           const { videos, nextPageToken } = await getChannelVideos(accessToken, channelId, videoPageToken);
           quotaUsed += 2; // 1 for /playlistItems + 1 for /videos details batch
 
-          for (const video of videos) {
-            try {
-              await upsertVideo({
-                id: video.id,
-                channelId: video.channelId,
-                title: video.title,
-                description: video.description,
-                thumbnail: video.thumbnail,
-                publishedAt: new Date(video.publishedAt),
-                duration: video.duration,
-                viewCount: video.viewCount,
-                categoryId: video.categoryId ?? null,
-              });
-              videosAdded++;
-              channelVideoCount++;
-            } catch (err) {
-              errors.push(`Failed to save video ${video.title}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-            }
+          const videoValues = videos.map((video) => ({
+            id: video.id,
+            channelId: video.channelId,
+            title: video.title,
+            description: video.description,
+            thumbnail: video.thumbnail,
+            publishedAt: new Date(video.publishedAt),
+            duration: video.duration,
+            viewCount: video.viewCount,
+            categoryId: video.categoryId ?? null,
+          }));
+
+          try {
+            await batchUpsertVideos(videoValues);
+            videosAdded += videoValues.length;
+            channelVideoCount += videoValues.length;
+          } catch (err) {
+            errors.push(`Failed to save videos for channel ${channelId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
           }
 
           videoPageToken = nextPageToken;
@@ -116,7 +117,7 @@ export async function syncNowAction(): Promise<SyncResult> {
       }
     }
 
-    await upsertSettings(session.user.id, { lastSyncAt: new Date() });
+    await upsertSettings(userId, { lastSyncAt: new Date() });
 
     revalidatePath('/');
     revalidatePath('/channels');

@@ -372,6 +372,20 @@ export function upsertChannel(
     .then((r) => r[0]);
 }
 
+export function batchUpsertChannels(
+  batch: Omit<Channel, 'createdAt' | 'customName' | 'lastSyncedAt'>[]
+): Promise<void> {
+  if (batch.length === 0) return Promise.resolve();
+  return getDb()
+    .insert(channels)
+    .values(batch)
+    .onConflictDoUpdate({
+      target: channels.id,
+      set: { title: sql`excluded.title`, thumbnail: sql`excluded.thumbnail` },
+    })
+    .then();
+}
+
 export function getVideoIdsWithNullCategoryId(): Promise<string[]> {
   return getDb()
     .select({ id: videos.id })
@@ -404,6 +418,24 @@ export function upsertVideo(video: Omit<Video, 'fetchedAt'>): Promise<Video> {
     })
     .returning()
     .then((r) => r[0]);
+}
+
+export function batchUpsertVideos(batch: Omit<Video, 'fetchedAt'>[]): Promise<void> {
+  if (batch.length === 0) return Promise.resolve();
+  return getDb()
+    .insert(videos)
+    .values(batch)
+    .onConflictDoUpdate({
+      target: videos.id,
+      set: {
+        title: sql`excluded.title`,
+        description: sql`excluded.description`,
+        thumbnail: sql`excluded.thumbnail`,
+        viewCount: sql`excluded.view_count`,
+        categoryId: sql`excluded.category_id`,
+      },
+    })
+    .then();
 }
 
 export function getSyncState(channelId: string) {
