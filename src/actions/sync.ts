@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 import { getSubscriptions, getChannelVideos, getVideoCategoryIds } from '@/lib/youtube/api';
 import { YouTubeQuotaError } from '@/lib/error';
-import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, upsertSettings, getVideoIdsWithNullCategoryId } from '@/lib/db/queries';
+import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, upsertSettings, upsertSyncState, getVideoIdsWithNullCategoryId } from '@/lib/db/queries';
 
 const QUOTA_LIMIT = 10000;
 const VIDEOS_PER_CHANNEL = 50;
@@ -83,6 +83,7 @@ export async function syncNowAction(): Promise<SyncResult> {
       try {
         let videoPageToken: string | undefined;
         let channelVideoCount = 0;
+        let latestVideoId: string | undefined;
         do {
           const { videos, nextPageToken } = await getChannelVideos(accessToken, channelId, videoPageToken);
           quotaUsed += 2; // 1 for /playlistItems + 1 for /videos details batch
@@ -99,6 +100,11 @@ export async function syncNowAction(): Promise<SyncResult> {
             categoryId: video.categoryId ?? null,
           }));
 
+          // YouTube returns videos newest-first; capture the first video from the first page
+          if (latestVideoId === undefined && videoValues.length > 0) {
+            latestVideoId = videoValues[0].id;
+          }
+
           try {
             await batchUpsertVideos(videoValues);
             videosAdded += videoValues.length;
@@ -109,6 +115,12 @@ export async function syncNowAction(): Promise<SyncResult> {
 
           videoPageToken = nextPageToken;
         } while (videoPageToken && channelVideoCount < VIDEOS_PER_CHANNEL);
+
+        await upsertSyncState({
+          channelId,
+          lastSyncedAt: new Date(),
+          lastVideoId: latestVideoId,
+        });
       } catch (err) {
         if (err instanceof YouTubeQuotaError) {
           break;

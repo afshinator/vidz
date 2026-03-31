@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, bigint, integer, primaryKey, index } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const channels = pgTable('channels', {
   id: text('id').primaryKey(),
@@ -49,7 +50,7 @@ export const topics = pgTable('topics', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('topics_user_id_idx').on(table.userId),
-  userIdDeletedAtIdx: index('topics_user_id_deleted_at_idx').on(table.userId, table.deletedAt),
+  activeUserIdx: index('topics_active_user_idx').on(table.userId).where(sql`deleted_at IS NULL`),
 }));
 
 export const tags = pgTable('tags', {
@@ -61,7 +62,7 @@ export const tags = pgTable('tags', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('tags_user_id_idx').on(table.userId),
-  userIdDeletedAtIdx: index('tags_user_id_deleted_at_idx').on(table.userId, table.deletedAt),
+  activeUserIdx: index('tags_active_user_idx').on(table.userId).where(sql`deleted_at IS NULL`),
 }));
 
 export const videoTags = pgTable('video_tags', {

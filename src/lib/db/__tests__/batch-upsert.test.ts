@@ -6,9 +6,9 @@
  */
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import 'dotenv/config';
-import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, getChannelsByUser, getVideoIdsWithNullCategoryId, getNotedVideoIds } from '@/lib/db/queries';
+import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, getChannelsByUser, getVideoIdsWithNullCategoryId, getNotedVideoIds, upsertSyncState, getSyncState } from '@/lib/db/queries';
 import { getDb } from '@/lib/db/client';
-import { channels, videos, videoNotes } from '@/lib/db/schema';
+import { channels, videos, videoNotes, syncState } from '@/lib/db/schema';
 import { isNull, inArray } from 'drizzle-orm';
 
 const TEST_USER_ID = `test_batch_${Date.now()}`;
@@ -76,6 +76,7 @@ afterAll(async () => {
   const allVideoIds = [...TEST_VIDEOS.map((v) => v.id), ...CAT_VIDEO_IDS, ...LIMIT_VIDEO_IDS];
   const channelIds = TEST_CHANNELS.map((c) => c.id);
   await db.delete(videoNotes).where(inArray(videoNotes.videoId, LIMIT_VIDEO_IDS));
+  await db.delete(syncState).where(inArray(syncState.channelId, channelIds));
   await db.delete(videos).where(inArray(videos.id, allVideoIds));
   await db.delete(channels).where(inArray(channels.id, channelIds));
 });
@@ -248,5 +249,47 @@ describe('getNotedVideoIds — limit parameter', () => {
     // We inserted 3 notes — all 3 should come back
     const ourNotes = result.filter((id) => LIMIT_VIDEO_IDS.includes(id));
     expect(ourNotes).toHaveLength(3);
+  });
+});
+
+describe('upsertSyncState / getSyncState', () => {
+  const SYNC_CHANNEL_ID = 'uc_test_1';
+
+  beforeAll(async () => {
+    // Ensure channel exists (FK constraint on sync_state.channel_id)
+    await batchUpsertChannels(TEST_CHANNELS);
+  });
+
+  it('persists sync state for a channel', async () => {
+    const syncedAt = new Date();
+    await upsertSyncState({
+      channelId: SYNC_CHANNEL_ID,
+      lastSyncedAt: syncedAt,
+      lastVideoId: 'uv_test_1',
+    });
+
+    const state = await getSyncState(SYNC_CHANNEL_ID);
+    expect(state).toBeDefined();
+    expect(state!.channelId).toBe(SYNC_CHANNEL_ID);
+    expect(state!.lastVideoId).toBe('uv_test_1');
+    expect(state!.lastSyncedAt?.getTime()).toBeCloseTo(syncedAt.getTime(), -2);
+  });
+
+  it('updates existing state on conflict — does not duplicate', async () => {
+    const updatedAt = new Date();
+    await upsertSyncState({
+      channelId: SYNC_CHANNEL_ID,
+      lastSyncedAt: updatedAt,
+      lastVideoId: 'uv_test_2',
+    });
+
+    const state = await getSyncState(SYNC_CHANNEL_ID);
+    expect(state!.lastVideoId).toBe('uv_test_2');
+    expect(state!.lastSyncedAt?.getTime()).toBeCloseTo(updatedAt.getTime(), -2);
+
+    // Confirm only one row exists for this channel
+    const db = getDb();
+    const rows = await db.select().from(syncState).where(inArray(syncState.channelId, [SYNC_CHANNEL_ID]));
+    expect(rows).toHaveLength(1);
   });
 });
