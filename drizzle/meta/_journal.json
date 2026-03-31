@@ -8,6 +8,13 @@
       "when": 1774496296313,
       "tag": "0000_spotty_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774916353286,
+      "tag": "0001_striped_wiccan",
+      "breakpoints": true
     }
   ]
 }

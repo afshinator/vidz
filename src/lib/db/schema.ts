@@ -106,6 +106,7 @@ export const videoNotes = pgTable('video_notes', {
 }, (table) => ({
   userIdIdx: index('video_notes_user_id_idx').on(table.userId),
   createdAtIdx: index('video_notes_created_at_idx').on(table.createdAt),
+  userVideoIdx: index('video_notes_user_video_idx').on(table.userId, table.videoId),
 }));
 
 export const watchlist = pgTable('watchlist', {
@@ -117,6 +118,7 @@ export const watchlist = pgTable('watchlist', {
   userIdIdx: index('watchlist_user_id_idx').on(table.userId),
   videoIdIdx: index('watchlist_video_id_idx').on(table.videoId),
   addedAtIdx: index('watchlist_added_at_idx').on(table.addedAt),
+  userVideoIdx: index('watchlist_user_video_idx').on(table.userId, table.videoId),
 }));
 
 export type Channel = typeof channels.$inferSelect;
