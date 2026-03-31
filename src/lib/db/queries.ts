@@ -137,15 +137,6 @@ export function getUnwatchedVideos(
     });
 }
 
-export function getWatchedVideoIds(userId: string): Promise<string[]> {
-  return getDb()
-    .select({ videoId: watched.videoId })
-    .from(watched)
-    .innerJoin(videos, eq(watched.videoId, videos.id))
-    .innerJoin(channels, eq(videos.channelId, channels.id))
-    .where(eq(channels.userId, userId))
-    .then((rows) => rows.map((r) => r.videoId!).filter((id): id is string => !!id));
-}
 
 export function markVideoWatched(videoId: string): Promise<void> {
   return getDb()
@@ -386,11 +377,12 @@ export function batchUpsertChannels(
     .then();
 }
 
-export function getVideoIdsWithNullCategoryId(): Promise<string[]> {
+export function getVideoIdsWithNullCategoryId(limit = 1000): Promise<string[]> {
   return getDb()
     .select({ id: videos.id })
     .from(videos)
     .where(isNull(videos.categoryId))
+    .limit(limit)
     .then((rows) => rows.map((r) => r.id));
 }
 
@@ -625,11 +617,12 @@ export function getNoteByVideo(userId: string, videoId: string): Promise<VideoNo
     .then((r) => r[0]);
 }
 
-export function getNotedVideoIds(userId: string): Promise<string[]> {
+export function getNotedVideoIds(userId: string, limit = 1000): Promise<string[]> {
   return getDb()
     .select({ videoId: videoNotes.videoId })
     .from(videoNotes)
     .where(eq(videoNotes.userId, userId))
+    .limit(limit)
     .then((rows) => rows.map((r) => r.videoId));
 }
 

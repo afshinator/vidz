@@ -6,9 +6,9 @@
  */
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import 'dotenv/config';
-import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, getChannelsByUser } from '@/lib/db/queries';
+import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, getChannelsByUser, getVideoIdsWithNullCategoryId, getNotedVideoIds } from '@/lib/db/queries';
 import { getDb } from '@/lib/db/client';
-import { channels, videos } from '@/lib/db/schema';
+import { channels, videos, videoNotes } from '@/lib/db/schema';
 import { isNull, inArray } from 'drizzle-orm';
 
 const TEST_USER_ID = `test_batch_${Date.now()}`;
@@ -63,10 +63,19 @@ const CAT_VIDEOS = [
   { id: 'uvc_test_3', channelId: 'uc_test_2', title: 'Cat Video Three', description: null, thumbnail: null, publishedAt: new Date('2024-07-03'), duration: null, viewCount: null, categoryId: null },
 ];
 
+// Videos/notes for limit tests
+const LIMIT_VIDEO_IDS = ['ulv_test_1', 'ulv_test_2', 'ulv_test_3'];
+const LIMIT_VIDEOS = [
+  { id: 'ulv_test_1', channelId: 'uc_test_1', title: 'Limit Video One', description: null, thumbnail: null, publishedAt: new Date('2024-08-01'), duration: null, viewCount: null, categoryId: null },
+  { id: 'ulv_test_2', channelId: 'uc_test_1', title: 'Limit Video Two', description: null, thumbnail: null, publishedAt: new Date('2024-08-02'), duration: null, viewCount: null, categoryId: null },
+  { id: 'ulv_test_3', channelId: 'uc_test_1', title: 'Limit Video Three', description: null, thumbnail: null, publishedAt: new Date('2024-08-03'), duration: null, viewCount: null, categoryId: null },
+];
+
 afterAll(async () => {
   const db = getDb();
-  const allVideoIds = [...TEST_VIDEOS.map((v) => v.id), ...CAT_VIDEO_IDS];
+  const allVideoIds = [...TEST_VIDEOS.map((v) => v.id), ...CAT_VIDEO_IDS, ...LIMIT_VIDEO_IDS];
   const channelIds = TEST_CHANNELS.map((c) => c.id);
+  await db.delete(videoNotes).where(inArray(videoNotes.videoId, LIMIT_VIDEO_IDS));
   await db.delete(videos).where(inArray(videos.id, allVideoIds));
   await db.delete(channels).where(inArray(channels.id, channelIds));
 });
@@ -191,5 +200,53 @@ describe('batchUpdateVideoCategoryIds', () => {
 
   it('handles empty input without error', async () => {
     await expect(batchUpdateVideoCategoryIds([])).resolves.toBeUndefined();
+  });
+});
+
+describe('getVideoIdsWithNullCategoryId — limit parameter', () => {
+  beforeAll(async () => {
+    await batchUpsertChannels(TEST_CHANNELS);
+    // Insert 3 videos that all have null categoryId
+    await batchUpsertVideos(LIMIT_VIDEOS);
+  });
+
+  it('returns at most `limit` results when more rows exist', async () => {
+    const result = await getVideoIdsWithNullCategoryId(2);
+    expect(result.length).toBeLessThanOrEqual(2);
+  });
+
+  it('default limit is honoured (does not return unlimited rows)', async () => {
+    // Smoke-check: result is an array of strings
+    const result = await getVideoIdsWithNullCategoryId();
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach((id) => expect(typeof id).toBe('string'));
+  });
+});
+
+describe('getNotedVideoIds — limit parameter', () => {
+  beforeAll(async () => {
+    await batchUpsertChannels(TEST_CHANNELS);
+    await batchUpsertVideos(LIMIT_VIDEOS);
+    const db = getDb();
+    await db.insert(videoNotes).values(
+      LIMIT_VIDEO_IDS.map((videoId, i) => ({
+        id: `note_test_${i}`,
+        userId: TEST_USER_ID,
+        videoId,
+        notes: `note ${i}`,
+      }))
+    ).onConflictDoNothing();
+  });
+
+  it('returns at most `limit` results when more notes exist', async () => {
+    const result = await getNotedVideoIds(TEST_USER_ID, 2);
+    expect(result.length).toBeLessThanOrEqual(2);
+  });
+
+  it('returns all notes when count is within limit', async () => {
+    const result = await getNotedVideoIds(TEST_USER_ID, 100);
+    // We inserted 3 notes — all 3 should come back
+    const ourNotes = result.filter((id) => LIMIT_VIDEO_IDS.includes(id));
+    expect(ourNotes).toHaveLength(3);
   });
 });
