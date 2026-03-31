@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 import { getSubscriptions, getChannelVideos, getVideoCategoryIds } from '@/lib/youtube/api';
 import { YouTubeQuotaError } from '@/lib/error';
-import { batchUpsertChannels, batchUpsertVideos, upsertSettings, getVideoIdsWithNullCategoryId, updateVideoCategoryId } from '@/lib/db/queries';
+import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, upsertSettings, getVideoIdsWithNullCategoryId } from '@/lib/db/queries';
 
 const QUOTA_LIMIT = 10000;
 const VIDEOS_PER_CHANNEL = 50;
@@ -189,14 +189,18 @@ export async function backfillCategoryIdsAction(): Promise<BackfillResult> {
     const categoryMap = await getVideoCategoryIds(accessToken, batch);
     quotaUsed += 1;
 
+    const updates: { videoId: string; categoryId: string }[] = [];
     for (const videoId of batch) {
       const categoryId = categoryMap.get(videoId);
       if (categoryId) {
-        await updateVideoCategoryId(videoId, categoryId);
-        updated++;
+        updates.push({ videoId, categoryId });
       } else {
         skipped++;
       }
+    }
+    if (updates.length > 0) {
+      await batchUpdateVideoCategoryIds(updates);
+      updated += updates.length;
     }
   }
 

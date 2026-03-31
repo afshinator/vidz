@@ -6,10 +6,10 @@
  */
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import 'dotenv/config';
-import { batchUpsertChannels, batchUpsertVideos, getChannelsByUser } from '@/lib/db/queries';
+import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, getChannelsByUser } from '@/lib/db/queries';
 import { getDb } from '@/lib/db/client';
 import { channels, videos } from '@/lib/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { isNull, inArray } from 'drizzle-orm';
 
 const TEST_USER_ID = `test_batch_${Date.now()}`;
 
@@ -55,10 +55,19 @@ const TEST_VIDEOS = [
   },
 ];
 
+// Videos used specifically for category-update tests (no categoryId on insert)
+const CAT_VIDEO_IDS = ['uvc_test_1', 'uvc_test_2', 'uvc_test_3'];
+const CAT_VIDEOS = [
+  { id: 'uvc_test_1', channelId: 'uc_test_1', title: 'Cat Video One', description: null, thumbnail: null, publishedAt: new Date('2024-07-01'), duration: null, viewCount: null, categoryId: null },
+  { id: 'uvc_test_2', channelId: 'uc_test_1', title: 'Cat Video Two', description: null, thumbnail: null, publishedAt: new Date('2024-07-02'), duration: null, viewCount: null, categoryId: null },
+  { id: 'uvc_test_3', channelId: 'uc_test_2', title: 'Cat Video Three', description: null, thumbnail: null, publishedAt: new Date('2024-07-03'), duration: null, viewCount: null, categoryId: null },
+];
+
 afterAll(async () => {
   const db = getDb();
+  const allVideoIds = [...TEST_VIDEOS.map((v) => v.id), ...CAT_VIDEO_IDS];
   const channelIds = TEST_CHANNELS.map((c) => c.id);
-  await db.delete(videos).where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
+  await db.delete(videos).where(inArray(videos.id, allVideoIds));
   await db.delete(channels).where(inArray(channels.id, channelIds));
 });
 
@@ -141,5 +150,46 @@ describe('batchUpsertVideos', () => {
       .where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
 
     expect(result).toHaveLength(TEST_VIDEOS.length);
+  });
+});
+
+describe('batchUpdateVideoCategoryIds', () => {
+  beforeAll(async () => {
+    await batchUpsertChannels(TEST_CHANNELS);
+    await batchUpsertVideos(CAT_VIDEOS);
+  });
+
+  it('updates categoryId for all provided video IDs in one call', async () => {
+    const updates = [
+      { videoId: 'uvc_test_1', categoryId: '10' },
+      { videoId: 'uvc_test_2', categoryId: '22' },
+    ];
+    await batchUpdateVideoCategoryIds(updates);
+
+    const db = getDb();
+    const result = await db.select().from(videos).where(inArray(videos.id, CAT_VIDEO_IDS));
+
+    const byId = Object.fromEntries(result.map((v) => [v.id, v.categoryId]));
+    expect(byId['uvc_test_1']).toBe('10');
+    expect(byId['uvc_test_2']).toBe('22');
+    // uvc_test_3 was not in the batch — should still be null
+    expect(byId['uvc_test_3']).toBeNull();
+  });
+
+  it('does not touch videos outside the provided list', async () => {
+    const db = getDb();
+    const before = await db.select({ id: videos.id, categoryId: videos.categoryId })
+      .from(videos).where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
+
+    await batchUpdateVideoCategoryIds([{ videoId: 'uvc_test_3', categoryId: '15' }]);
+
+    const after = await db.select({ id: videos.id, categoryId: videos.categoryId })
+      .from(videos).where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
+
+    expect(after).toEqual(before);
+  });
+
+  it('handles empty input without error', async () => {
+    await expect(batchUpdateVideoCategoryIds([])).resolves.toBeUndefined();
   });
 });

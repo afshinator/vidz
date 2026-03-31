@@ -402,6 +402,24 @@ export function updateVideoCategoryId(videoId: string, categoryId: string): Prom
     .then(() => undefined);
 }
 
+export function batchUpdateVideoCategoryIds(
+  updates: { videoId: string; categoryId: string }[]
+): Promise<void> {
+  if (updates.length === 0) return Promise.resolve();
+  // Single UPDATE … FROM (VALUES …) — one round-trip regardless of batch size
+  const valuesSql = sql.join(
+    updates.map((u) => sql`(${u.videoId}, ${u.categoryId})`),
+    sql`, `
+  );
+  return getDb()
+    .execute(
+      sql`UPDATE videos SET category_id = v.category_id
+          FROM (VALUES ${valuesSql}) AS v(id, category_id)
+          WHERE videos.id = v.id`
+    )
+    .then(() => undefined);
+}
+
 export function upsertVideo(video: Omit<Video, 'fetchedAt'>): Promise<Video> {
   return getDb()
     .insert(videos)
