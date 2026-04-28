@@ -1,11 +1,17 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 
+const authGoogleId = process.env.AUTH_GOOGLE_ID;
+const authGoogleSecret = process.env.AUTH_GOOGLE_SECRET;
+
+if (!authGoogleId) throw new Error('Missing AUTH_GOOGLE_ID');
+if (!authGoogleSecret) throw new Error('Missing AUTH_GOOGLE_SECRET');
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      clientId: authGoogleId,
+      clientSecret: authGoogleSecret,
       authorization: {
         params: {
           scope: 'openid email profile https://www.googleapis.com/auth/youtube.readonly',
@@ -18,7 +24,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async session({ session, token }) {
-      if (session.user && session.user.email) {
+      if (session.user?.email) {
         session.user.id = session.user.email;
         session.accessToken = token.accessToken as string;
       }
@@ -41,8 +47,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
               body: new URLSearchParams({
-                client_id: process.env.AUTH_GOOGLE_ID!,
-                client_secret: process.env.AUTH_GOOGLE_SECRET!,
+                client_id: authGoogleId,
+                client_secret: authGoogleSecret,
                 grant_type: 'refresh_token',
                 refresh_token: token.refreshToken as string,
               }),
