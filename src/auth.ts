@@ -9,6 +9,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       authorization: {
         params: {
           scope: 'openid email profile https://www.googleapis.com/auth/youtube.readonly',
+          prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
         },
@@ -33,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.refreshToken && token.expiresAt) {
         const expiresAtMs = Number(token.expiresAt) * 1000;
         const shouldRefresh = Date.now() > expiresAtMs - 60000;
-        
+
         if (shouldRefresh) {
           try {
             const response = await fetch('https://oauth2.googleapis.com/token', {
@@ -51,11 +52,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               const tokens = await response.json();
               token.accessToken = tokens.access_token;
               token.expiresAt = Math.floor(Date.now() / 1000) + tokens.expires_in;
-            } else {
-              token.accessToken = null;
             }
+            // On failure: do NOT set accessToken to null - keep the old token
+            // so the user isn't forced to re-login immediately
           } catch {
-            token.accessToken = null;
+            // On network error: don't update token, keep old value
           }
         }
       }

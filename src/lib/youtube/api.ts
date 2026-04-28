@@ -2,10 +2,19 @@ import { YouTubeQuotaError } from '@/lib/error';
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const DAILY_QUOTA = 10000;
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 1000;
+
+// Status codes that should not be retried
+const NON_RETRYABLE_STATUS = new Set([400, 401, 403]);
 
 interface YouTubeApiResponse<T> {
   data: T;
   quotaUsed: number;
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function fetchYouTube<T>(
@@ -16,28 +25,58 @@ async function fetchYouTube<T>(
   const url = new URL(`${YOUTUBE_API_BASE}${endpoint}`);
   Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    const error = await response.json();
-    if (response.status === 403) {
-      const reason = error.error?.errors?.[0]?.reason;
-      if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
-        throw new YouTubeQuotaError('YouTube API quota exceeded', DAILY_QUOTA, 0);
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(url.toString(), {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+
+        // Don't retry certain status codes
+        if (NON_RETRYABLE_STATUS.has(response.status)) {
+          if (response.status === 403) {
+            const reason = error.error?.errors?.[0]?.reason;
+            if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
+              throw new YouTubeQuotaError('YouTube API quota exceeded', DAILY_QUOTA, 0);
+            }
+            throw new Error(error.error?.message || 'YouTube API access forbidden. Check OAuth scopes and credentials.');
+          }
+          throw new Error(error.error?.message || 'YouTube API error');
+        }
+
+        // Retry on 500, 502, 503, 504, etc.
+        lastError = new Error(error.error?.message || `HTTP ${response.status}`);
+        if (attempt < MAX_RETRIES) {
+          await sleep(RETRY_DELAY_MS * (attempt + 1)); // Linear backoff
+          continue;
+        }
+        throw lastError;
       }
-      throw new Error(error.error?.message || 'YouTube API access forbidden. Check OAuth scopes and credentials.');
+
+      return {
+        data: await response.json(),
+        quotaUsed: 1,
+      };
+    } catch (err) {
+      // Network errors (fetch throws TypeError)
+      if (err instanceof TypeError) {
+        lastError = err;
+        if (attempt < MAX_RETRIES) {
+          await sleep(RETRY_DELAY_MS * (attempt + 1));
+          continue;
+        }
+      }
+      throw err;
     }
-    throw new Error(error.error?.message || 'YouTube API error');
   }
 
-  return {
-    data: await response.json(),
-    quotaUsed: 1,
-  };
+  throw lastError || new Error('Unknown error in fetchYouTube');
 }
 
 export interface YouTubeChannel {
