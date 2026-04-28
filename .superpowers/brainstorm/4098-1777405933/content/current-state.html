@@ -1,0 +1,69 @@
+<h2>Current Dashboard: Video Display Problem</h2>
+<p class="subtitle">You see up to 8 videos per tag in the accordion card</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">Current: Tag Accordion (8-video limit)</div>
+    <div class="mockup-body">
+      <div class="mock-nav">Dashboard → Unwatched Videos by Tag</div>
+      
+      <div style="margin-top: 12px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span>
+          <strong>Programming</strong>
+          <span style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">8 / 24</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px;">
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 1</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 2</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 3</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 4</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 5</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 6</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 7</div>
+          <div class="placeholder" style="aspect-ratio: 16/9; border-radius: 4px; font-size: 10px;">Video 8</div>
+        </div>
+        
+        <div style="text-align: center; padding: 8px; color: #6b7280; font-size: 12px;">
+          ⚠️ 16 more videos hidden — click "View All" to see them
+        </div>
+      </div>
+      
+      <p style="margin-top: 12px; font-size: 12px; color: #ef4444;">
+        Problem: Users must leave dashboard to see all 24 videos in "Programming" tag
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Which approach do you prefer?</h3>
+  <p class="subtitle">How should users access more videos within the dashboard?</p>
+  
+  <div class="options">
+    <div class="option" data-choice="show-more" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>"Show More" Button</h3>
+        <p>Show 8 initially, click to load 8 more within the accordion. Progressive disclosure keeps dashboard lightweight.</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="scrollable-list" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Scrollable List View</h3>
+        <p>Switch to compact list layout inside accordion. Show all videos in a scrollable container (fixed height or virtual scroll).</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="remove-limit" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Remove Limit + Pagination</h3>
+        <p>Show all videos with pagination controls (prev/next) inside each accordion. Full access without leaving page.</p>
+      </div>
+    </div>
+  </div>
+</div>
