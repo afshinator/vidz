@@ -139,28 +139,6 @@ export async function getSubscriptions(
 	};
 }
 
-export async function getChannelDetails(
-	accessToken: string,
-	channelId: string,
-): Promise<YouTubeChannel | null> {
-	const { data } = await fetchYouTube<{
-		items: Array<{
-			id: string;
-			snippet: { title: string; thumbnails: { medium?: { url: string } } };
-		}>;
-	}>("/channels", accessToken, {
-		id: channelId,
-		part: "snippet",
-	});
-
-	if (!data.items?.length) return null;
-	const item = data.items[0];
-	return {
-		id: item.id,
-		title: item.snippet.title,
-		thumbnail: item.snippet.thumbnails.medium?.url || "",
-	};
-}
 
 export async function getChannelVideos(
 	accessToken: string,
@@ -236,27 +214,6 @@ export async function getChannelVideos(
 	};
 }
 
-export async function getWatchHistory(
-	accessToken: string,
-	pageToken?: string,
-): Promise<{ videoIds: string[]; nextPageToken?: string }> {
-	const { data } = await fetchYouTube<{
-		items: Array<{
-			contentDetails: { videoId: string };
-		}>;
-		nextPageToken?: string;
-	}>("/activities", accessToken, {
-		mine: "true",
-		part: "contentDetails",
-		maxResults: "50",
-		...(pageToken && { pageToken }),
-	});
-
-	return {
-		videoIds: data.items.map((item) => item.contentDetails.videoId),
-		nextPageToken: data.nextPageToken,
-	};
-}
 
 export async function getVideoCategoryIds(
 	accessToken: string,

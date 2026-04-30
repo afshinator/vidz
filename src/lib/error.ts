@@ -9,16 +9,3 @@ export class YouTubeQuotaError extends Error {
   }
 }
 
-export class SyncConflictError extends Error {
-  constructor(message: string, public channelId: string) {
-    super(message);
-    this.name = 'SyncConflictError';
-  }
-}
-
-export class ValidationError extends Error {
-  constructor(message: string, public field?: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}

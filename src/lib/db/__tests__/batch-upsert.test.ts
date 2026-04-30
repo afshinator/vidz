@@ -65,6 +65,13 @@ const CAT_VIDEOS = [
 
 // Videos/notes for limit tests
 const LIMIT_VIDEO_IDS = ['ulv_test_1', 'ulv_test_2', 'ulv_test_3'];
+async function fetchTestVideos(ids: string[]) {
+  const db = getDb();
+  return db.select().from(videos).where(inArray(videos.id, ids));
+}
+
+const TEST_VIDEO_IDS = TEST_VIDEOS.map((v) => v.id);
+
 const LIMIT_VIDEOS = [
   { id: 'ulv_test_1', channelId: 'uc_test_1', title: 'Limit Video One', description: null, thumbnail: null, publishedAt: new Date('2024-08-01'), duration: null, viewCount: null, categoryId: null },
   { id: 'ulv_test_2', channelId: 'uc_test_1', title: 'Limit Video Two', description: null, thumbnail: null, publishedAt: new Date('2024-08-02'), duration: null, viewCount: null, categoryId: null },
@@ -123,12 +130,7 @@ describe('batchUpsertVideos', () => {
   it('inserts all videos in a single call', async () => {
     await batchUpsertVideos(TEST_VIDEOS);
 
-    const db = getDb();
-    const result = await db
-      .select()
-      .from(videos)
-      .where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
-
+    const result = await fetchTestVideos(TEST_VIDEO_IDS);
     expect(result).toHaveLength(TEST_VIDEOS.length);
   });
 
@@ -136,12 +138,7 @@ describe('batchUpsertVideos', () => {
     const updated = TEST_VIDEOS.map((v) => ({ ...v, title: v.title + ' (updated)', viewCount: 9999 }));
     await batchUpsertVideos(updated);
 
-    const db = getDb();
-    const result = await db
-      .select()
-      .from(videos)
-      .where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
-
+    const result = await fetchTestVideos(TEST_VIDEO_IDS);
     expect(result).toHaveLength(TEST_VIDEOS.length);
     for (const video of result) {
       expect(video.title).toMatch(/\(updated\)$/);
@@ -153,12 +150,7 @@ describe('batchUpsertVideos', () => {
     await batchUpsertVideos(TEST_VIDEOS);
     await batchUpsertVideos(TEST_VIDEOS);
 
-    const db = getDb();
-    const result = await db
-      .select()
-      .from(videos)
-      .where(inArray(videos.id, TEST_VIDEOS.map((v) => v.id)));
-
+    const result = await fetchTestVideos(TEST_VIDEO_IDS);
     expect(result).toHaveLength(TEST_VIDEOS.length);
   });
 });

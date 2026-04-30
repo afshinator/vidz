@@ -7,7 +7,7 @@ const authGoogleSecret = process.env.AUTH_GOOGLE_SECRET;
 if (!authGoogleId) throw new Error('Missing AUTH_GOOGLE_ID');
 if (!authGoogleSecret) throw new Error('Missing AUTH_GOOGLE_SECRET');
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth } = NextAuth({
   providers: [
     Google({
       clientId: authGoogleId,

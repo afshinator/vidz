@@ -21,4 +21,3 @@ export function getDb() {
   return db;
 }
 
-export type DB = typeof db;

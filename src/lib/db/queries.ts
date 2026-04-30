@@ -4,16 +4,14 @@ import {
   channels,
   videos,
   watched,
-  topics,
   tags,
-  videoTags,
   channelTags,
   syncState,
   appSettings,
   videoNotes,
   watchlist,
 } from './schema';
-import type { Channel, Video, Topic, Tag, AppSettings, VideoNote, Watchlist } from './schema';
+import type { Channel, Video, Tag, AppSettings, VideoNote, Watchlist } from './schema';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -92,51 +90,6 @@ export function getVideosByChannel(
     });
 }
 
-export function getRecentVideos(limit = 50): Promise<Video[]> {
-  return getDb().select().from(videos).orderBy(desc(videos.publishedAt)).limit(limit);
-}
-
-export function getUnwatchedVideos(
-  userId: string,
-  limit = 20,
-  cursor?: string
-): Promise<PaginatedResult<Video & { channelTitle: string }>> {
-  return getDb()
-    .select({
-      id: videos.id,
-      channelId: videos.channelId,
-      title: videos.title,
-      description: videos.description,
-      thumbnail: videos.thumbnail,
-      publishedAt: videos.publishedAt,
-      duration: videos.duration,
-      viewCount: videos.viewCount,
-      categoryId: videos.categoryId,
-      fetchedAt: videos.fetchedAt,
-      channelTitle: channels.title,
-    })
-    .from(videos)
-    .innerJoin(channels, eq(videos.channelId, channels.id))
-    .leftJoin(watched, eq(watched.videoId, videos.id))
-    .where(
-      and(
-        eq(channels.userId, userId),
-        isNull(watched.videoId),
-        ...(cursor ? [lt(videos.publishedAt, new Date(cursor))] : [])
-      )
-    )
-    .orderBy(desc(videos.publishedAt))
-    .limit(limit + 1)
-    .then((rows) => {
-      const hasMore = rows.length > limit;
-      const data = hasMore ? rows.slice(0, -1) : rows;
-      const nextCursor = hasMore && data.length > 0 
-        ? data[data.length - 1].publishedAt?.toISOString() 
-        : undefined;
-      return { data, nextCursor, hasMore };
-    });
-}
-
 
 export function markVideoWatched(videoId: string): Promise<void> {
   return getDb()
@@ -150,14 +103,6 @@ export function markVideoUnwatched(videoId: string): Promise<void> {
   return getDb().delete(watched).where(eq(watched.videoId, videoId)).then();
 }
 
-export function isVideoWatched(videoId: string): Promise<boolean> {
-  return getDb()
-    .select({ videoId: watched.videoId })
-    .from(watched)
-    .where(eq(watched.videoId, videoId))
-    .limit(1)
-    .then((r) => r.length > 0);
-}
 
 export function getVideoById(videoId: string, userId: string): Promise<Video | undefined> {
   return getDb()
@@ -169,66 +114,6 @@ export function getVideoById(videoId: string, userId: string): Promise<Video | u
     .then((r) => r[0]?.videos);
 }
 
-export function getTopicsByUser(userId: string): Promise<Topic[]> {
-  return getDb()
-    .select()
-    .from(topics)
-    .where(and(eq(topics.userId, userId), isNull(topics.deletedAt)))
-    .orderBy(desc(topics.createdAt));
-}
-
-export function getTopicById(topicId: string, userId: string): Promise<Topic | undefined> {
-  return getDb()
-    .select()
-    .from(topics)
-    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
-    .limit(1)
-    .then((r) => r[0]);
-}
-
-export function updateTopic(
-  topicId: string,
-  userId: string,
-  data: Partial<Pick<Topic, 'name' | 'keywords' | 'categoryId' | 'color'>>
-): Promise<Topic> {
-  return getDb()
-    .update(topics)
-    .set(data)
-    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
-    .returning()
-    .then((r) => r[0]);
-}
-
-export function deleteTopic(topicId: string, userId: string): Promise<void> {
-  return getDb()
-    .update(topics)
-    .set({ deletedAt: new Date() })
-    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
-    .then();
-}
-
-export function createTopic(data: {
-  userId: string;
-  name: string;
-  type: 'keyword' | 'category';
-  keywords?: string[];
-  categoryId?: string;
-  color?: string;
-}): Promise<Topic> {
-  return getDb()
-    .insert(topics)
-    .values({
-      id: crypto.randomUUID(),
-      userId: data.userId,
-      name: data.name,
-      type: data.type,
-      keywords: data.keywords || [],
-      categoryId: data.categoryId || null,
-      color: data.color || '#6366f1',
-    })
-    .returning()
-    .then((r) => r[0]);
-}
 
 export type UnwatchedVideoWithTags = {
   id: string;
@@ -349,19 +234,6 @@ export function upsertSettings(
     .then((r) => r[0]);
 }
 
-export function upsertChannel(
-  channel: Omit<Channel, 'createdAt' | 'customName' | 'lastSyncedAt'>
-): Promise<Channel> {
-  return getDb()
-    .insert(channels)
-    .values(channel)
-    .onConflictDoUpdate({
-      target: channels.id,
-      set: { title: channel.title, thumbnail: channel.thumbnail },
-    })
-    .returning()
-    .then((r) => r[0]);
-}
 
 export function batchUpsertChannels(
   batch: Omit<Channel, 'createdAt' | 'customName' | 'lastSyncedAt'>[]
@@ -386,13 +258,6 @@ export function getVideoIdsWithNullCategoryId(limit = 1000): Promise<string[]> {
     .then((rows) => rows.map((r) => r.id));
 }
 
-export function updateVideoCategoryId(videoId: string, categoryId: string): Promise<void> {
-  return getDb()
-    .update(videos)
-    .set({ categoryId })
-    .where(eq(videos.id, videoId))
-    .then(() => undefined);
-}
 
 export function batchUpdateVideoCategoryIds(
   updates: { videoId: string; categoryId: string }[]
@@ -412,23 +277,6 @@ export function batchUpdateVideoCategoryIds(
     .then(() => undefined);
 }
 
-export function upsertVideo(video: Omit<Video, 'fetchedAt'>): Promise<Video> {
-  return getDb()
-    .insert(videos)
-    .values(video)
-    .onConflictDoUpdate({
-      target: videos.id,
-      set: {
-        title: video.title,
-        description: video.description,
-        thumbnail: video.thumbnail,
-        viewCount: video.viewCount,
-        categoryId: video.categoryId,
-      },
-    })
-    .returning()
-    .then((r) => r[0]);
-}
 
 export function batchUpsertVideos(batch: Omit<Video, 'fetchedAt'>[]): Promise<void> {
   if (batch.length === 0) return Promise.resolve();
@@ -608,14 +456,6 @@ export async function getVideoNotesByUser(userId: string): Promise<VideoNoteWith
   }));
 }
 
-export function getNoteByVideo(userId: string, videoId: string): Promise<VideoNote | undefined> {
-  return getDb()
-    .select()
-    .from(videoNotes)
-    .where(and(eq(videoNotes.userId, userId), eq(videoNotes.videoId, videoId)))
-    .limit(1)
-    .then((r) => r[0]);
-}
 
 export function getNotedVideoIds(userId: string, limit = 1000): Promise<string[]> {
   return getDb()
@@ -693,19 +533,4 @@ export function removeFromWatchlist(id: string, userId: string): Promise<void> {
     .then();
 }
 
-export function isVideoInWatchlist(userId: string, videoId: string): Promise<boolean> {
-  return getDb()
-    .select({ id: watchlist.id })
-    .from(watchlist)
-    .where(and(eq(watchlist.userId, userId), eq(watchlist.videoId, videoId)))
-    .limit(1)
-    .then((r) => r.length > 0);
-}
 
-export function getWatchlistVideoIds(userId: string): Promise<string[]> {
-  return getDb()
-    .select({ videoId: watchlist.videoId })
-    .from(watchlist)
-    .where(eq(watchlist.userId, userId))
-    .then((rows) => rows.map((r) => r.videoId));
-}
