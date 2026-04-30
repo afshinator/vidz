@@ -2,16 +2,9 @@
 
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
-import { Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { formatRelativeTime } from '@/lib/utils/time';
 import { deleteNoteAction } from '@/actions/notes';
+import { ConfirmDeleteDialog, DeleteButton } from '@/components/ui/confirm-delete';
 import type { VideoNoteWithVideo } from '@/lib/db/queries';
 
 interface NotesClientProps {
@@ -78,35 +71,17 @@ function NoteCard({ note }: { note: VideoNoteWithVideo }) {
         </div>
 
         {/* Delete button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
-          onClick={() => setConfirmOpen(true)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <DeleteButton onClick={() => setConfirmOpen(true)} />
       </div>
 
-      {/* Delete confirmation dialog */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Remove from Notes?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            This will remove the note for &ldquo;{note.video.title}&rdquo;. This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={isPending}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-              {isPending ? 'Removing…' : 'Remove'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Remove from Notes?"
+        description={`This will remove the note for \u201c${note.video.title}\u201d. This action cannot be undone.`}
+        onConfirm={handleDelete}
+        isPending={isPending}
+      />
     </>
   );
 }

@@ -9,6 +9,7 @@ import type { CategoryGroup } from '@/components/unwatched/category-accordion-li
 import { ChannelsCloud } from '@/components/unwatched/channels-cloud';
 import type { ChannelCount } from '@/components/unwatched/channels-cloud';
 import { getCategoryById } from '@/lib/topics/categorizer';
+import { groupByTag as sharedGroupByTag } from '@/lib/utils/video-grouping';
 import type { UnwatchedVideoWithTags } from '@/lib/db/queries';
 
 type GroupMode = 'category' | 'tag';
@@ -37,33 +38,12 @@ function groupByYTCategory(videos: UnwatchedVideoWithTags[]): CategoryGroup[] {
 }
 
 function groupByTag(videos: UnwatchedVideoWithTags[]): CategoryGroup[] {
-  const map = new Map<string, CategoryGroup>();
-  const uncategorized: UnwatchedVideoWithTags[] = [];
-
-  for (const video of videos) {
-    if (video.tags.length === 0) {
-      uncategorized.push(video);
-    } else {
-      for (const tag of video.tags) {
-        const slug = tag.name.toLowerCase().replace(/\s+/g, '-');
-        if (!map.has(tag.id)) map.set(tag.id, { name: tag.name, slug, color: tag.color, videos: [] });
-        map.get(tag.id)!.videos.push(video);
-      }
-    }
-  }
-
-  const byChannel = (a: UnwatchedVideoWithTags, b: UnwatchedVideoWithTags) =>
-    (a.channelTitle ?? '').localeCompare(b.channelTitle ?? '') ||
-    b.publishedAt.getTime() - a.publishedAt.getTime();
-
-  const groups = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  for (const g of groups) (g.videos as UnwatchedVideoWithTags[]).sort(byChannel);
-
-  if (uncategorized.length > 0) {
-    uncategorized.sort(byChannel as (a: UnwatchedVideoWithTags, b: UnwatchedVideoWithTags) => number);
-    groups.push({ name: 'Uncategorized', slug: 'uncategorized', color: '#6b7280', videos: uncategorized });
-  }
-  return groups;
+  return sharedGroupByTag(videos).map((g) => ({
+    name: g.name,
+    slug: g.name.toLowerCase().replace(/\s+/g, '-'),
+    color: g.color,
+    videos: g.videos,
+  }));
 }
 
 function countByChannel(videos: UnwatchedVideoWithTags[]): ChannelCount[] {

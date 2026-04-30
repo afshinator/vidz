@@ -1,3 +1,44 @@
+import type { YouTubeChannel, YouTubeVideo } from '@/lib/youtube/api';
+
+export function mapChannelValues(
+  channels: YouTubeChannel[],
+  userId: string,
+): Array<{ id: string; userId: string; title: string; thumbnail: string | null; subscribedAt: Date | null }> {
+  return channels.map((channel) => ({
+    id: channel.id,
+    userId,
+    title: channel.title,
+    thumbnail: channel.thumbnail || null,
+    subscribedAt: channel.subscribedAt ? new Date(channel.subscribedAt) : null,
+  }));
+}
+
+export function mapVideoValues(
+  videos: YouTubeVideo[],
+): Array<{
+  id: string;
+  channelId: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  publishedAt: Date;
+  duration: string;
+  viewCount: number;
+  categoryId: string | null;
+}> {
+  return videos.map((video) => ({
+    id: video.id,
+    channelId: video.channelId,
+    title: video.title,
+    description: video.description,
+    thumbnail: video.thumbnail,
+    publishedAt: new Date(video.publishedAt),
+    duration: video.duration,
+    viewCount: video.viewCount,
+    categoryId: video.categoryId ?? null,
+  }));
+}
+
 export function buildCategoryUpdates(
   videoIds: string[],
   categoryMap: Map<string, string>,

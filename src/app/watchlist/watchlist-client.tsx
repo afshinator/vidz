@@ -2,16 +2,10 @@
 
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
-import { Trash2, PlayCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { PlayCircle } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils/time';
 import { removeFromWatchlistAction } from '@/actions/videos';
+import { ConfirmDeleteDialog, DeleteButton } from '@/components/ui/confirm-delete';
 import type { WatchlistVideo } from '@/lib/db/queries';
 
 interface WatchlistClientProps {
@@ -85,35 +79,17 @@ function WatchlistCard({ item }: { item: WatchlistVideo }) {
         </div>
 
         {/* Remove button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
-          onClick={() => setConfirmOpen(true)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <DeleteButton onClick={() => setConfirmOpen(true)} />
       </div>
 
-      {/* Remove confirmation dialog */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Remove from Watchlist?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            This will remove &ldquo;{item.video.title}&rdquo; from your watchlist. This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={isPending}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleRemove} disabled={isPending}>
-              {isPending ? 'Removing…' : 'Remove'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Remove from Watchlist?"
+        description={`This will remove \u201c${item.video.title}\u201d from your watchlist. This action cannot be undone.`}
+        onConfirm={handleRemove}
+        isPending={isPending}
+      />
     </>
   );
 }

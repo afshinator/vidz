@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { getSubscriptions, getChannelVideos, getVideoCategoryIds } from '@/lib/youtube/api';
 import { YouTubeQuotaError } from '@/lib/error';
 import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, upsertSettings, upsertSyncState, getVideoIdsWithNullCategoryId } from '@/lib/db/queries';
-import { buildCategoryUpdates, buildSyncResultMessage, checkQuota } from '@/lib/sync-utils';
+import { buildCategoryUpdates, buildSyncResultMessage, checkQuota, mapChannelValues, mapVideoValues } from '@/lib/sync-utils';
 
 const QUOTA_LIMIT = 10000;
 const VIDEOS_PER_CHANNEL = 50;
@@ -17,6 +17,82 @@ interface SyncResult {
   videosAdded: number;
   quotaUsed: number;
   message: string;
+}
+
+async function syncSubscriptions(
+  accessToken: string,
+  userId: string,
+  quotaUsed: { current: number },
+): Promise<{ channelIds: string[]; channelsSynced: number; errors: string[] }> {
+  const channelIds: string[] = [];
+  let channelsSynced = 0;
+  const errors: string[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const { channels, nextPageToken } = await getSubscriptions(accessToken, pageToken);
+    quotaUsed.current += 1;
+
+    const channelValues = mapChannelValues(channels, userId);
+
+    try {
+      await batchUpsertChannels(channelValues);
+      channelsSynced += channelValues.length;
+      channelIds.push(...channelValues.map((c) => c.id));
+    } catch (err) {
+      errors.push(`Failed to save channels page: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+
+    pageToken = nextPageToken;
+  } while (pageToken && quotaUsed.current < QUOTA_LIMIT - 100);
+
+  return { channelIds, channelsSynced, errors };
+}
+
+async function syncChannelVideos(
+  accessToken: string,
+  channelIds: string[],
+  quotaUsed: { current: number },
+): Promise<{ videosAdded: number; errors: string[] }> {
+  let videosAdded = 0;
+  const errors: string[] = [];
+
+  for (const channelId of channelIds.slice(0, MAX_CHANNELS_PER_SYNC)) {
+    if (quotaUsed.current >= QUOTA_LIMIT - 10) break;
+
+    try {
+      let videoPageToken: string | undefined;
+      let channelVideoCount = 0;
+      let latestVideoId: string | undefined;
+      do {
+        const { videos, nextPageToken } = await getChannelVideos(accessToken, channelId, videoPageToken);
+        quotaUsed.current += 2;
+
+        const videoValues = mapVideoValues(videos);
+
+        if (latestVideoId === undefined && videoValues.length > 0) {
+          latestVideoId = videoValues[0].id;
+        }
+
+        try {
+          await batchUpsertVideos(videoValues);
+          videosAdded += videoValues.length;
+          channelVideoCount += videoValues.length;
+        } catch (err) {
+          errors.push(`Failed to save videos for channel ${channelId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+
+        videoPageToken = nextPageToken;
+      } while (videoPageToken && channelVideoCount < VIDEOS_PER_CHANNEL);
+
+      await upsertSyncState({ channelId, lastSyncedAt: new Date(), lastVideoId: latestVideoId });
+    } catch (err) {
+      if (err instanceof YouTubeQuotaError) break;
+      errors.push(`Failed to fetch videos for channel ${channelId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }
+
+  return { videosAdded, errors };
 }
 
 export async function syncNowAction(): Promise<SyncResult> {
@@ -37,93 +113,24 @@ export async function syncNowAction(): Promise<SyncResult> {
     };
   }
 
-  let quotaUsed = 0;
+  const quotaUsed = { current: 0 };
   let channelsSynced = 0;
   let videosAdded = 0;
   const errors: string[] = [];
-  const channelIds: string[] = [];
 
   try {
-    let pageToken: string | undefined;
-    do {
-      const { channels, nextPageToken } = await getSubscriptions(accessToken, pageToken);
-      quotaUsed += 1;
+    const subResult = await syncSubscriptions(accessToken, userId, quotaUsed);
+    channelsSynced = subResult.channelsSynced;
+    errors.push(...subResult.errors);
 
-      const channelValues = channels.map((channel) => ({
-        id: channel.id,
-        userId,
-        title: channel.title,
-        thumbnail: channel.thumbnail,
-        subscribedAt: channel.subscribedAt ? new Date(channel.subscribedAt) : null,
-      }));
-
-      try {
-        await batchUpsertChannels(channelValues);
-        channelsSynced += channelValues.length;
-        channelIds.push(...channelValues.map((c) => c.id));
-      } catch (err) {
-        errors.push(`Failed to save channels page: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
-
-      pageToken = nextPageToken;
-    } while (pageToken && quotaUsed < QUOTA_LIMIT - 100);
-
-    const quotaCheck = checkQuota(quotaUsed, channelsSynced, videosAdded);
+    const quotaCheck = checkQuota(quotaUsed.current, channelsSynced, videosAdded);
     if (quotaCheck.exceeded) {
-      return { success: false, channelsSynced, videosAdded, quotaUsed, message: quotaCheck.message };
+      return { success: false, channelsSynced, videosAdded, quotaUsed: quotaUsed.current, message: quotaCheck.message };
     }
 
-    for (const channelId of channelIds.slice(0, MAX_CHANNELS_PER_SYNC)) {
-      if (quotaUsed >= QUOTA_LIMIT - 10) break;
-
-      try {
-        let videoPageToken: string | undefined;
-        let channelVideoCount = 0;
-        let latestVideoId: string | undefined;
-        do {
-          const { videos, nextPageToken } = await getChannelVideos(accessToken, channelId, videoPageToken);
-          quotaUsed += 2; // 1 for /playlistItems + 1 for /videos details batch
-
-          const videoValues = videos.map((video) => ({
-            id: video.id,
-            channelId: video.channelId,
-            title: video.title,
-            description: video.description,
-            thumbnail: video.thumbnail,
-            publishedAt: new Date(video.publishedAt),
-            duration: video.duration,
-            viewCount: video.viewCount,
-            categoryId: video.categoryId ?? null,
-          }));
-
-          // YouTube returns videos newest-first; capture the first video from the first page
-          if (latestVideoId === undefined && videoValues.length > 0) {
-            latestVideoId = videoValues[0].id;
-          }
-
-          try {
-            await batchUpsertVideos(videoValues);
-            videosAdded += videoValues.length;
-            channelVideoCount += videoValues.length;
-          } catch (err) {
-            errors.push(`Failed to save videos for channel ${channelId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-          }
-
-          videoPageToken = nextPageToken;
-        } while (videoPageToken && channelVideoCount < VIDEOS_PER_CHANNEL);
-
-        await upsertSyncState({
-          channelId,
-          lastSyncedAt: new Date(),
-          lastVideoId: latestVideoId,
-        });
-      } catch (err) {
-        if (err instanceof YouTubeQuotaError) {
-          break;
-        }
-        errors.push(`Failed to fetch videos for channel ${channelId}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
-    }
+    const videoResult = await syncChannelVideos(accessToken, subResult.channelIds, quotaUsed);
+    videosAdded = videoResult.videosAdded;
+    errors.push(...videoResult.errors);
 
     await upsertSettings(userId, { lastSyncAt: new Date() });
 
@@ -135,19 +142,17 @@ export async function syncNowAction(): Promise<SyncResult> {
       success: true,
       channelsSynced,
       videosAdded,
-      quotaUsed,
+      quotaUsed: quotaUsed.current,
       message: buildSyncResultMessage(channelsSynced, videosAdded, errors),
     };
   } catch (err) {
     if (err instanceof YouTubeQuotaError) {
-      const quotaErr = err as YouTubeQuotaError;
       return {
         success: false,
         channelsSynced,
         videosAdded,
-        quotaUsed: Math.max(quotaUsed, quotaErr.unitsUsed),
+        quotaUsed: Math.max(quotaUsed.current, err.unitsUsed),
         message: `YouTube API quota exceeded. Synced ${channelsSynced} channels and ${videosAdded} videos.`,
-
       };
     }
 
@@ -155,7 +160,7 @@ export async function syncNowAction(): Promise<SyncResult> {
       success: false,
       channelsSynced,
       videosAdded,
-      quotaUsed,
+      quotaUsed: quotaUsed.current,
       message: `Sync failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
     };
   }

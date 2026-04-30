@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { YouTubeQuotaError } from '@/lib/error';
 
-// The functions we'll test — they'll exist after extraction
-// buildYouTubeUrl — pure URL building
-// validateYouTubeResponse — response validation
-// fetchYouTube — retry loop (mocked fetch)
+function mockResponse(data: unknown, status = 200): Response {
+  return Response.json(data, { status });
+}
+
+function mockSuccess(data: unknown) {
+  return mockResponse(data, 200);
+}
+
+function mockError(status: number, message: string) {
+  return mockResponse({ error: { message } }, status);
+}
 
 describe('buildYouTubeUrl', () => {
   it('builds a URL from endpoint and params', async () => {
@@ -23,45 +30,36 @@ describe('buildYouTubeUrl', () => {
 describe('validateYouTubeResponse', () => {
   it('returns parsed JSON for successful response', async () => {
     const { validateYouTubeResponse } = await import('@/lib/youtube/api');
-    const response = new Response(JSON.stringify({ items: [] }), { status: 200 });
-    const result = await validateYouTubeResponse(response);
+    const result = await validateYouTubeResponse(mockSuccess({ items: [] }));
     expect(result).toEqual({ items: [] });
   });
 
   it('throws YouTubeQuotaError on 403 quotaExceeded', async () => {
     const { validateYouTubeResponse } = await import('@/lib/youtube/api');
-    const response = new Response(
-      JSON.stringify({ error: { errors: [{ reason: 'quotaExceeded' }] } }),
-      { status: 403 }
-    );
-    await expect(validateYouTubeResponse(response)).rejects.toThrow(YouTubeQuotaError);
+    await expect(
+      validateYouTubeResponse(mockResponse({ error: { errors: [{ reason: 'quotaExceeded' }] } }, 403))
+    ).rejects.toThrow(YouTubeQuotaError);
   });
 
   it('throws YouTubeQuotaError on 403 dailyLimitExceeded', async () => {
     const { validateYouTubeResponse } = await import('@/lib/youtube/api');
-    const response = new Response(
-      JSON.stringify({ error: { errors: [{ reason: 'dailyLimitExceeded' }] } }),
-      { status: 403 }
-    );
-    await expect(validateYouTubeResponse(response)).rejects.toThrow(YouTubeQuotaError);
+    await expect(
+      validateYouTubeResponse(mockResponse({ error: { errors: [{ reason: 'dailyLimitExceeded' }] } }, 403))
+    ).rejects.toThrow(YouTubeQuotaError);
   });
 
   it('throws on 401 with error message', async () => {
     const { validateYouTubeResponse } = await import('@/lib/youtube/api');
-    const response = new Response(
-      JSON.stringify({ error: { message: 'Invalid credentials' } }),
-      { status: 401 }
-    );
-    await expect(validateYouTubeResponse(response)).rejects.toThrow('Invalid credentials');
+    await expect(
+      validateYouTubeResponse(mockResponse({ error: { message: 'Invalid credentials' } }, 401))
+    ).rejects.toThrow('Invalid credentials');
   });
 
   it('throws generic error on 500', async () => {
     const { validateYouTubeResponse } = await import('@/lib/youtube/api');
-    const response = new Response(
-      JSON.stringify({ error: { message: 'Internal server error' } }),
-      { status: 500 }
-    );
-    await expect(validateYouTubeResponse(response)).rejects.toThrow('Internal server error');
+    await expect(
+      validateYouTubeResponse(mockResponse({ error: { message: 'Internal server error' } }, 500))
+    ).rejects.toThrow('Internal server error');
   });
 });
 
@@ -78,9 +76,7 @@ describe('fetchYouTube', () => {
 
   it('returns data and quota on success', async () => {
     const { fetchYouTube } = await import('@/lib/youtube/api');
-    vi.mocked(global.fetch).mockResolvedValue(
-      new Response(JSON.stringify({ items: [{ id: '123' }] }), { status: 200 })
-    );
+    vi.mocked(global.fetch).mockResolvedValue(mockSuccess({ items: [{ id: '123' }] }));
 
     const result = await fetchYouTube('/videos', 'token', { id: '123' });
     expect(result).toEqual({ data: { items: [{ id: '123' }] }, quotaUsed: 1 });
@@ -89,12 +85,8 @@ describe('fetchYouTube', () => {
   it('retries on 500 then succeeds', async () => {
     const { fetchYouTube } = await import('@/lib/youtube/api');
     vi.mocked(global.fetch)
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: { message: 'Server error' } }), { status: 500 })
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ items: [] }), { status: 200 })
-      );
+      .mockResolvedValueOnce(mockError(500, 'Server error'))
+      .mockResolvedValueOnce(mockSuccess({ items: [] }));
 
     const result = await fetchYouTube('/videos', 'token');
     expect(result.data).toEqual({ items: [] });
@@ -105,9 +97,7 @@ describe('fetchYouTube', () => {
     const { fetchYouTube } = await import('@/lib/youtube/api');
     vi.mocked(global.fetch)
       .mockRejectedValueOnce(new TypeError('Network failure'))
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ items: [] }), { status: 200 })
-      );
+      .mockResolvedValueOnce(mockSuccess({ items: [] }));
 
     const result = await fetchYouTube('/videos', 'token');
     expect(result.data).toEqual({ items: [] });
@@ -116,10 +106,7 @@ describe('fetchYouTube', () => {
   it('throws immediately on 403 quotaExceeded without retry', async () => {
     const { fetchYouTube } = await import('@/lib/youtube/api');
     vi.mocked(global.fetch).mockResolvedValue(
-      new Response(
-        JSON.stringify({ error: { errors: [{ reason: 'quotaExceeded' }] } }),
-        { status: 403 }
-      )
+      mockResponse({ error: { errors: [{ reason: 'quotaExceeded' }] } }, 403)
     );
 
     await expect(fetchYouTube('/videos', 'token')).rejects.toThrow(YouTubeQuotaError);
@@ -129,7 +116,7 @@ describe('fetchYouTube', () => {
   it('throws after exhausting retries on 500', async () => {
     const { fetchYouTube } = await import('@/lib/youtube/api');
     vi.mocked(global.fetch).mockImplementation(() =>
-      Promise.resolve(Response.json({ error: { message: 'Server error' } }, { status: 500 }))
+      Promise.resolve(mockError(500, 'Server error'))
     );
 
     await expect(fetchYouTube('/videos', 'token')).rejects.toThrow('Server error');
@@ -138,9 +125,7 @@ describe('fetchYouTube', () => {
 
   it('sends bearer token in Authorization header', async () => {
     const { fetchYouTube } = await import('@/lib/youtube/api');
-    vi.mocked(global.fetch).mockResolvedValue(
-      new Response(JSON.stringify({ items: [] }), { status: 200 })
-    );
+    vi.mocked(global.fetch).mockResolvedValue(mockSuccess({ items: [] }));
 
     await fetchYouTube('/videos', 'test-token');
     expect(vi.mocked(global.fetch)).toHaveBeenCalledWith(

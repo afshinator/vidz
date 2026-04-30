@@ -1,4 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
+
+interface YouTubeChannel {
+  id: string;
+  title: string;
+  thumbnail: string;
+  subscribedAt?: string;
+}
+
+interface YouTubeVideo {
+  id: string;
+  channelId: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  publishedAt: string;
+  duration: string;
+  viewCount: number;
+  categoryId?: string;
+}
 
 describe('buildCategoryUpdates', () => {
   it('separates videos with and without category data', async () => {
@@ -31,6 +50,78 @@ describe('buildCategoryUpdates', () => {
     const { updates, skipped } = buildCategoryUpdates(videoIds, categoryMap);
     expect(updates).toHaveLength(2);
     expect(skipped).toBe(0);
+  });
+});
+
+describe('mapChannelValues', () => {
+  it('transforms YouTube channels to DB format', async () => {
+    const { mapChannelValues } = await import('@/lib/sync-utils');
+    const channels: YouTubeChannel[] = [
+      { id: 'uc_1', title: 'Channel One', thumbnail: 'https://example.com/thumb.jpg' },
+      { id: 'uc_2', title: 'Channel Two', thumbnail: '', subscribedAt: '2024-01-01T00:00:00Z' },
+    ];
+
+    const result = mapChannelValues(channels, 'user_1');
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({
+      id: 'uc_1',
+      userId: 'user_1',
+      title: 'Channel One',
+      thumbnail: 'https://example.com/thumb.jpg',
+      subscribedAt: null,
+    });
+    expect(result[1].subscribedAt).toBeInstanceOf(Date);
+  });
+
+  it('handles empty array', async () => {
+    const { mapChannelValues } = await import('@/lib/sync-utils');
+    expect(mapChannelValues([], 'user_1')).toEqual([]);
+  });
+});
+
+describe('mapVideoValues', () => {
+  it('transforms YouTube videos to DB format', async () => {
+    const { mapVideoValues } = await import('@/lib/sync-utils');
+    const videos: YouTubeVideo[] = [
+      {
+        id: 'uv_1',
+        channelId: 'uc_1',
+        title: 'Video One',
+        description: 'A test video',
+        thumbnail: 'https://example.com/vid.jpg',
+        publishedAt: '2024-06-01T12:00:00Z',
+        duration: 'PT5M',
+        viewCount: 1000,
+        categoryId: '22',
+      },
+    ];
+
+    const result = mapVideoValues(videos);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('uv_1');
+    expect(result[0].publishedAt).toBeInstanceOf(Date);
+    expect(result[0].viewCount).toBe(1000);
+    expect(result[0].categoryId).toBe('22');
+  });
+
+  it('handles empty array', async () => {
+    const { mapVideoValues } = await import('@/lib/sync-utils');
+    expect(mapVideoValues([])).toEqual([]);
+  });
+
+  it('defaults null categoryId when missing', async () => {
+    const { mapVideoValues } = await import('@/lib/sync-utils');
+    const videos: YouTubeVideo[] = [
+      {
+        id: 'uv_2', channelId: 'uc_1', title: 'No Cat', description: '', thumbnail: '',
+        publishedAt: '2024-06-01T00:00:00Z', duration: 'PT1M', viewCount: 0,
+      },
+    ];
+
+    const result = mapVideoValues(videos);
+    expect(result[0].categoryId).toBeNull();
   });
 });
 
