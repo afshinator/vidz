@@ -44,18 +44,6 @@ export async function markAsWatchedAction(videoId: string) {
   revalidatePath('/channels');
 }
 
-export async function markAsUnwatchedAction(videoId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-  
-  await verifyVideoOwnership(videoId, session.user.id);
-  await markVideoUnwatched(videoId);
-  revalidatePath('/');
-  revalidatePath('/tags');
-  revalidatePath('/channels');
-}
 
 export async function addToWatchlistAction(videoId: string) {
   const session = await auth();

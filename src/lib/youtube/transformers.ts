@@ -1,38 +1,4 @@
-import type { Channel, Video } from '@/lib/db/schema';
-import type { YouTubeChannel, YouTubeVideo } from './api';
-
-export function toChannel(
-  ytChannel: YouTubeChannel,
-  userId: string
-): Omit<Channel, 'createdAt'> {
-  return {
-    id: ytChannel.id,
-    userId,
-    title: ytChannel.title,
-    thumbnail: ytChannel.thumbnail,
-    customName: null,
-    subscribedAt: ytChannel.subscribedAt ? new Date(ytChannel.subscribedAt) : new Date(),
-    lastSyncedAt: new Date(),
-  };
-}
-
-export function toVideo(
-  ytVideo: YouTubeVideo
-): Omit<Video, 'fetchedAt'> {
-  return {
-    id: ytVideo.id,
-    channelId: ytVideo.channelId,
-    title: ytVideo.title,
-    description: ytVideo.description,
-    thumbnail: ytVideo.thumbnail,
-    publishedAt: new Date(ytVideo.publishedAt),
-    duration: ytVideo.duration,
-    viewCount: ytVideo.viewCount,
-    categoryId: ytVideo.categoryId ?? null,
-  };
-}
-
-export function parseYouTubeDuration(duration: string): number {
+function parseYouTubeDuration(duration: string): number {
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return 0;
   const hours = parseInt(match[1] || '0', 10);

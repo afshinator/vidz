@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-export type ViewMode = 'grid' | 'list';
+type ViewMode = 'grid' | 'list';
 
 interface ViewModeContextValue {
   viewMode: ViewMode;
