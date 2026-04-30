@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { formatRelativeTime } from '@/lib/utils/time';
-import { formatDuration, formatViewCount } from '@/lib/youtube/transformers';
+import { formatDuration } from '@/lib/youtube/transformers';
 import Image from 'next/image';
 import { Check, CheckCircle2, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toggleWatched } from '@/actions/videos';
 import { VideoActionDialog } from './video-action-dialog';
+import { VideoMeta } from './video-meta';
 
 interface VideoCardProps {
   video: {
@@ -105,22 +105,14 @@ export function VideoCard({ video, channelTitle, isWatched, hasNote }: VideoCard
         </div>
 
         {/* Metadata */}
-        <div className="p-3 space-y-1">
-          <h3 className="line-clamp-2 text-sm font-medium leading-snug">{video.title}</h3>
-          <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
-            {channelTitle && (
-              <span className="text-primary/90 font-medium">{channelTitle}</span>
-            )}
-            {channelTitle && <span className="opacity-30">·</span>}
-            <span>{formatRelativeTime(video.publishedAt)}</span>
-            {video.viewCount != null && video.viewCount !== undefined && (
-              <>
-                <span className="opacity-30">·</span>
-                <span>{formatViewCount(video.viewCount)} views</span>
-              </>
-            )}
-          </p>
-        </div>
+        <VideoMeta
+          title={video.title}
+          channelTitle={channelTitle}
+          publishedAt={video.publishedAt}
+          viewCount={video.viewCount}
+          hasNote={hasNote}
+          className="p-3 space-y-1"
+        />
       </Card>
 
       <VideoActionDialog

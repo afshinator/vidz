@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { getSubscriptions, getChannelVideos, getVideoCategoryIds } from '@/lib/youtube/api';
 import { YouTubeQuotaError } from '@/lib/error';
 import { batchUpsertChannels, batchUpsertVideos, batchUpdateVideoCategoryIds, upsertSettings, upsertSyncState, getVideoIdsWithNullCategoryId } from '@/lib/db/queries';
+import { buildCategoryUpdates, buildSyncResultMessage, checkQuota } from '@/lib/sync-utils';
 
 const QUOTA_LIMIT = 10000;
 const VIDEOS_PER_CHANNEL = 50;
@@ -67,14 +68,9 @@ export async function syncNowAction(): Promise<SyncResult> {
       pageToken = nextPageToken;
     } while (pageToken && quotaUsed < QUOTA_LIMIT - 100);
 
-    if (quotaUsed >= QUOTA_LIMIT - 100) {
-      return {
-        success: false,
-        channelsSynced,
-        videosAdded,
-        quotaUsed,
-        message: `Quota limit reached. Synced ${channelsSynced} channels and ${videosAdded} videos.`,
-      };
+    const quotaCheck = checkQuota(quotaUsed, channelsSynced, videosAdded);
+    if (quotaCheck.exceeded) {
+      return { success: false, channelsSynced, videosAdded, quotaUsed, message: quotaCheck.message };
     }
 
     for (const channelId of channelIds.slice(0, MAX_CHANNELS_PER_SYNC)) {
@@ -135,16 +131,12 @@ export async function syncNowAction(): Promise<SyncResult> {
     revalidatePath('/channels');
     revalidatePath('/topics');
 
-    const message = errors.length > 0
-      ? `Synced ${channelsSynced} channels and ${videosAdded} videos. ${errors.length} error${errors.length > 1 ? 's' : ''} occurred: ${errors.slice(0, 3).join('; ')}`
-      : `Successfully synced ${channelsSynced} channels and ${videosAdded} videos.`;
-
     return {
       success: true,
       channelsSynced,
       videosAdded,
       quotaUsed,
-      message,
+      message: buildSyncResultMessage(channelsSynced, videosAdded, errors),
     };
   } catch (err) {
     if (err instanceof YouTubeQuotaError) {
@@ -201,15 +193,8 @@ export async function backfillCategoryIdsAction(): Promise<BackfillResult> {
     const categoryMap = await getVideoCategoryIds(accessToken, batch);
     quotaUsed += 1;
 
-    const updates: { videoId: string; categoryId: string }[] = [];
-    for (const videoId of batch) {
-      const categoryId = categoryMap.get(videoId);
-      if (categoryId) {
-        updates.push({ videoId, categoryId });
-      } else {
-        skipped++;
-      }
-    }
+    const { updates, skipped: batchSkipped } = buildCategoryUpdates(batch, categoryMap);
+    skipped += batchSkipped;
     if (updates.length > 0) {
       await batchUpdateVideoCategoryIds(updates);
       updated += updates.length;
