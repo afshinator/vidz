@@ -1,17 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getSoundsEnabled, setSoundsEnabled } from '../sound-prefs';
-
-function mockStorage(): Storage {
-  const store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { Object.keys(store).forEach(k => delete store[k]); },
-    get length() { return Object.keys(store).length; },
-    key: (i: number) => Object.keys(store)[i] ?? null,
-  } as Storage;
-}
+import { mockStorage } from './test-helpers';
 
 let storage: Storage;
 
