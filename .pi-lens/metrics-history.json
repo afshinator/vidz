@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "files": {
+    "src/hooks/use-topic-filter.ts": {
+      "latest": {
+        "commit": "a0efaaa",
+        "timestamp": "2026-05-20T23:05:17.747Z",
+        "mi": 43.1,
+        "cognitive": 8,
+        "nesting": 4,
+        "lines": 52,
+        "maxCyclomatic": 11,
+        "entropy": 5.38
+      },
+      "history": [
+        {
+          "commit": "a0efaaa",
+          "timestamp": "2026-05-20T23:05:17.747Z",
+          "mi": 43.1,
+          "cognitive": 8,
+          "nesting": 4,
+          "lines": 52,
+          "maxCyclomatic": 11,
+          "entropy": 5.38
+        }
+      ],
+      "trend": "stable"
+    }
+  },
+  "capturedAt": "2026-05-20T23:05:22.748Z"
+}
