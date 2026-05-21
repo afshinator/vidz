@@ -25,7 +25,57 @@
         }
       ],
       "trend": "stable"
+    },
+    "src/app/layout.tsx": {
+      "latest": {
+        "commit": "aa00414",
+        "timestamp": "2026-05-21T01:07:52.270Z",
+        "mi": 46,
+        "cognitive": 0,
+        "nesting": 1,
+        "lines": 43,
+        "maxCyclomatic": 1,
+        "entropy": 4.47
+      },
+      "history": [
+        {
+          "commit": "aa00414",
+          "timestamp": "2026-05-21T01:07:52.270Z",
+          "mi": 46,
+          "cognitive": 0,
+          "nesting": 1,
+          "lines": 43,
+          "maxCyclomatic": 1,
+          "entropy": 4.47
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/components/layout/sidebar.tsx": {
+      "latest": {
+        "commit": "aa00414",
+        "timestamp": "2026-05-21T01:07:52.336Z",
+        "mi": 34.4,
+        "cognitive": 6,
+        "nesting": 2,
+        "lines": 95,
+        "maxCyclomatic": 9,
+        "entropy": 5.04
+      },
+      "history": [
+        {
+          "commit": "aa00414",
+          "timestamp": "2026-05-21T01:07:52.336Z",
+          "mi": 34.4,
+          "cognitive": 6,
+          "nesting": 2,
+          "lines": 95,
+          "maxCyclomatic": 9,
+          "entropy": 5.04
+        }
+      ],
+      "trend": "stable"
     }
   },
-  "capturedAt": "2026-05-20T23:05:22.748Z"
+  "capturedAt": "2026-05-21T01:07:57.340Z"
 }
