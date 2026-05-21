@@ -138,11 +138,6 @@
     },
     {
       "type": "file",
-      "name": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx",
-      "file": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx"
-    },
-    {
-      "type": "file",
       "name": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx",
       "file": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx"
     },
@@ -160,6 +155,11 @@
       "type": "file",
       "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx",
       "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx"
     },
     {
       "type": "file",
@@ -526,11 +526,6 @@
     },
     {
       "type": "file",
-      "name": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx",
-      "file": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx"
-    },
-    {
-      "type": "file",
       "name": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx",
       "file": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx"
     },
@@ -548,6 +543,11 @@
       "type": "file",
       "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx",
       "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx"
     },
     {
       "type": "file",
