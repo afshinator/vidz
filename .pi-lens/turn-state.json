@@ -1,17 +1,27 @@
 {
   "files": {
-    "src/components/layout/sidebar.tsx": {
+    "src/components/video/video-card.tsx": {
       "modifiedRanges": [
         {
           "start": 1,
-          "end": 134
+          "end": 136
         }
       ],
       "importsChanged": true,
-      "lastEdit": "2026-05-21T01:08:59.810Z"
+      "lastEdit": "2026-05-21T02:17:28.688Z"
+    },
+    "src/components/video/video-list-item.tsx": {
+      "modifiedRanges": [
+        {
+          "start": 1,
+          "end": 120
+        }
+      ],
+      "importsChanged": true,
+      "lastEdit": "2026-05-21T02:17:28.887Z"
     }
   },
   "turnCycles": 0,
   "maxCycles": 3,
-  "lastUpdated": "2026-05-21T01:08:59.810Z"
+  "lastUpdated": "2026-05-21T02:17:28.887Z"
 }

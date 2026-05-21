@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +16,7 @@ import {
 	CheckCircle2,
 	Check,
 	ListPlus,
+	Tv,
 } from "lucide-react";
 import { addNoteAction } from "@/actions/notes";
 import { markAsWatchedAction, addToWatchlistAction } from "@/actions/videos";
@@ -24,6 +26,7 @@ interface VideoActionDialogProps {
 		id: string;
 		title: string;
 		thumbnail?: string | null;
+		channelId?: string | null;
 	};
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -54,15 +57,19 @@ function SuccessMessage({
 function MenuActions({
 	onOpenYouTube,
 	onShowNotes,
+	onOpenChannel,
 	onMarkWatched,
 	onAddToWatchlist,
 	isPending,
+	showOpenChannel,
 }: {
 	onOpenYouTube: () => void;
 	onShowNotes: () => void;
+	onOpenChannel: () => void;
 	onMarkWatched: () => void;
 	onAddToWatchlist: () => void;
 	isPending: boolean;
+	showOpenChannel: boolean;
 }) {
 	return (
 		<div className="flex flex-col gap-3 pt-2">
@@ -74,6 +81,16 @@ function MenuActions({
 				<ExternalLink className="h-4 w-4" />
 				Open in YouTube
 			</Button>
+			{showOpenChannel && (
+				<Button
+					variant="outline"
+					className="w-full justify-start gap-2"
+					onClick={onOpenChannel}
+				>
+					<Tv className="h-4 w-4" />
+					Open Channel
+				</Button>
+			)}
 			<Button
 				variant="outline"
 				className="w-full justify-start gap-2"
@@ -159,6 +176,7 @@ export function VideoActionDialog({
 	const [notesText, setNotesText] = useState("");
 	const [actionState, setActionState] = useState<ActionState>("menu");
 	const [isPending, startTransition] = useTransition();
+	const router = useRouter();
 
 	function resetAndClose() {
 		setActionState("menu");
@@ -170,6 +188,11 @@ export function VideoActionDialog({
 	function handleOpenYouTube() {
 		window.open(`https://www.youtube.com/watch?v=${video.id}`, "_blank");
 		onOpenChange(false);
+	}
+
+	function handleOpenChannel() {
+		onOpenChange(false);
+		router.push(`/channels/${video.channelId}`);
 	}
 
 	function handleSave(skipNotes?: boolean) {
@@ -236,9 +259,11 @@ export function VideoActionDialog({
 							setShowNotes(true);
 							setActionState("notes");
 						}}
+						onOpenChannel={handleOpenChannel}
 						onMarkWatched={handleMarkWatched}
 						onAddToWatchlist={handleAddToWatchlist}
 						isPending={isPending}
+						showOpenChannel={!!video.channelId}
 					/>
 				);
 		}
