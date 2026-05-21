@@ -1,0 +1,756 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/drizzle.config.ts",
+      "file": ".claude/worktrees/agent-a00312db/drizzle.config.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/eslint.config.mjs",
+      "file": ".claude/worktrees/agent-a00312db/eslint.config.mjs"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/next.config.ts",
+      "file": ".claude/worktrees/agent-a00312db/next.config.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/postcss.config.mjs",
+      "file": ".claude/worktrees/agent-a00312db/postcss.config.mjs"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/auth.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/auth.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/notes.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/notes.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/settings.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/settings.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/sync.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/sync.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/tags.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/tags.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/topics.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/topics.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/videos.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/videos.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/globals.css",
+      "file": ".claude/worktrees/agent-a00312db/src/app/globals.css"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/layout.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/providers.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/providers.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/sync-button.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/sync-button.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/error.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/error.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/types/next-auth.d.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/types/next-auth.d.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/channels/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/channels/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/notes/notes-client.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/notes/notes-client.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/notes/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/notes/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/settings/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/settings/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/tags/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/tags/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/unwatched/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/unwatched/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/unwatched/unwatched-client.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/unwatched/unwatched-client.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/channel/channel-card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/channel/channel-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-context.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-context.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-extra.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-extra.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/create-tag-dialog.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/create-tag-dialog.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/tag-assign-popover.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/tag-assign-popover.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/topic-card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/topic-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/topics-client.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/topics-client.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/accordion.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/accordion.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/avatar.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/avatar.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/badge.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/badge.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/button.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/button.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/checkbox.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/checkbox.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/dialog.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/dialog.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/dropdown-menu.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/dropdown-menu.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/empty-state.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/empty-state.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/input.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/input.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/label.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/label.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/popover.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/popover.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/select.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/select.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/sheet.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/sheet.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/switch.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/switch.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/time-ago.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/time-ago.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/unwatched/category-accordion-list.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/unwatched/category-accordion-list.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/unwatched/channels-cloud.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/unwatched/channels-cloud.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-action-dialog.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-action-dialog.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-grid.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-grid.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-list-item.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-list-item.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/view-mode-context.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/view-mode-context.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/db/client.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/db/client.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/db/queries.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/db/queries.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/db/schema.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/db/schema.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/topics/categorizer.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/topics/categorizer.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/topics/matcher.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/topics/matcher.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils/pagination.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils/pagination.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils/theme.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils/theme.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils/time.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils/time.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/youtube/api.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/youtube/api.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/youtube/filter.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/youtube/filter.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/youtube/transformers.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/youtube/transformers.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/channels/[id]/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/channels/[id]/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/api/auth/[...nextauth]/route.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/app/api/auth/[...nextauth]/route.ts"
+    },
+    {
+      "type": "export",
+      "name": "PlayFunction",
+      "file": "src/lib/sound-types.ts",
+      "line": 35
+    },
+    {
+      "type": "export",
+      "name": "SoundControls",
+      "file": "src/lib/sound-types.ts",
+      "line": 40
+    }
+  ],
+  "unusedExports": [
+    {
+      "type": "export",
+      "name": "PlayFunction",
+      "file": "src/lib/sound-types.ts",
+      "line": 35
+    },
+    {
+      "type": "export",
+      "name": "SoundControls",
+      "file": "src/lib/sound-types.ts",
+      "line": 40
+    }
+  ],
+  "unusedFiles": [
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/drizzle.config.ts",
+      "file": ".claude/worktrees/agent-a00312db/drizzle.config.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/eslint.config.mjs",
+      "file": ".claude/worktrees/agent-a00312db/eslint.config.mjs"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/next.config.ts",
+      "file": ".claude/worktrees/agent-a00312db/next.config.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/postcss.config.mjs",
+      "file": ".claude/worktrees/agent-a00312db/postcss.config.mjs"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/auth.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/auth.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/notes.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/notes.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/settings.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/settings.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/sync.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/sync.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/tags.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/tags.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/topics.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/topics.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/actions/videos.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/actions/videos.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/globals.css",
+      "file": ".claude/worktrees/agent-a00312db/src/app/globals.css"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/layout.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/providers.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/providers.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/sync-button.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/sync-button.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/error.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/error.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/types/next-auth.d.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/types/next-auth.d.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/channels/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/channels/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/notes/notes-client.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/notes/notes-client.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/notes/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/notes/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/settings/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/settings/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/tags/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/tags/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/unwatched/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/unwatched/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/unwatched/unwatched-client.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/unwatched/unwatched-client.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/channel/channel-card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/channel/channel-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/settings/theme-selector.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/header.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-context.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-context.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-extra.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar-extra.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/layout/sidebar.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/create-tag-dialog.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/create-tag-dialog.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/tag-assign-popover.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/tag-assign-popover.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/topic-card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/topic-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/topic/topics-client.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/topic/topics-client.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/accordion.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/accordion.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/avatar.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/avatar.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/badge.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/badge.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/button.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/button.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/checkbox.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/checkbox.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/dialog.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/dialog.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/dropdown-menu.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/dropdown-menu.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/empty-state.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/empty-state.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/input.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/input.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/label.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/label.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/popover.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/popover.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/select.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/select.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/sheet.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/sheet.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/switch.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/switch.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/ui/time-ago.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/ui/time-ago.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/unwatched/category-accordion-list.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/unwatched/category-accordion-list.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/unwatched/channels-cloud.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/unwatched/channels-cloud.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-action-dialog.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-action-dialog.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-card.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-grid.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-grid.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/video-list-item.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/video-list-item.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/components/video/view-mode-context.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/components/video/view-mode-context.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/db/client.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/db/client.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/db/queries.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/db/queries.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/db/schema.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/db/schema.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/topics/categorizer.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/topics/categorizer.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/topics/matcher.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/topics/matcher.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils/pagination.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils/pagination.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils/theme.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils/theme.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/utils/time.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/utils/time.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/youtube/api.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/youtube/api.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/youtube/filter.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/youtube/filter.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/lib/youtube/transformers.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/lib/youtube/transformers.ts"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/channels/[id]/page.tsx",
+      "file": ".claude/worktrees/agent-a00312db/src/app/channels/[id]/page.tsx"
+    },
+    {
+      "type": "file",
+      "name": ".claude/worktrees/agent-a00312db/src/app/api/auth/[...nextauth]/route.ts",
+      "file": ".claude/worktrees/agent-a00312db/src/app/api/auth/[...nextauth]/route.ts"
+    }
+  ],
+  "unusedDeps": [],
+  "unlistedDeps": [],
+  "summary": "Found 74 issues"
+}

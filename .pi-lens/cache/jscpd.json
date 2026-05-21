@@ -1,0 +1,48 @@
+{
+  "success": true,
+  "clones": [
+    {
+      "fileA": "src/lib/db/queries.ts",
+      "startA": 135,
+      "fileB": "src/lib/db/queries.ts",
+      "startB": 45,
+      "lines": 13,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/video/video-card.tsx",
+      "startA": 97,
+      "fileB": "src/components/video/video-list-item.tsx",
+      "startB": 81,
+      "lines": 35,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/video/video-card.tsx",
+      "startA": 36,
+      "fileB": "src/components/video/video-list-item.tsx",
+      "startB": 33,
+      "lines": 10,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/app/notes/notes-client.tsx",
+      "startA": 25,
+      "fileB": "src/app/watchlist/watchlist-client.tsx",
+      "startB": 26,
+      "lines": 15,
+      "tokens": 0
+    },
+    {
+      "fileA": "drizzle/0001_striped_wiccan.sql",
+      "startA": 1,
+      "fileB": "drizzle/0001_watchlist.sql",
+      "startB": 1,
+      "lines": 11,
+      "tokens": 0
+    }
+  ],
+  "duplicatedLines": 79,
+  "totalLines": 9303,
+  "percentage": 0.85
+}

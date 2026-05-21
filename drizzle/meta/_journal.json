@@ -15,6 +15,13 @@
       "when": 1774916353286,
       "tag": "0001_striped_wiccan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779395670260,
+      "tag": "0002_nebulous_talkback",
+      "breakpoints": true
     }
   ]
 }
