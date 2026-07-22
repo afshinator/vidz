@@ -36,6 +36,7 @@ export async function toggleWatched(
 
 	revalidatePath("/");
 	revalidatePath("/unwatched");
+	revalidatePath("/listview");
 	revalidatePath("/tags");
 	revalidatePath("/channels");
 	revalidatePath("/channels/[id]", "page");
@@ -51,6 +52,7 @@ export async function markAsWatchedAction(videoId: string) {
 	await markVideoWatched(videoId);
 	revalidatePath("/");
 	revalidatePath("/unwatched");
+	revalidatePath("/listview");
 	revalidatePath("/tags");
 	revalidatePath("/channels");
 	revalidatePath("/channels/[id]", "page");

@@ -13,6 +13,7 @@ import {
 	BookmarkCheck,
 	Info,
 	ListTodo,
+	List,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { useSidebar } from "./sidebar-context";
 const navItems = [
 	{ href: "/", label: "Dashboard", icon: LayoutDashboard },
 	{ href: "/unwatched", label: "Unwatched", icon: PlayCircle },
+	{ href: "/listview", label: "List View", icon: List },
 	{ href: "/notes", label: "Notes", icon: BookmarkCheck },
 	{ href: "/watchlist", label: "Watchlist", icon: ListTodo },
 	{ href: "/tags", label: "Tags", icon: Hash },

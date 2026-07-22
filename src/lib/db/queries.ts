@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, isNull, lt, inArray } from 'drizzle-orm';
+import { eq, desc, asc, gt, and, sql, isNull, lt, inArray } from 'drizzle-orm';
 import { getDb } from './client';
 import {
   channels,
@@ -182,6 +182,121 @@ export async function getUnwatchedVideosWithChannelTags(userId: string, limit = 
   }
 
   return Array.from(videoMap.values());
+}
+
+type SortField = 'publishedAt' | 'title' | 'channelTitle';
+type SortDir = 'asc' | 'desc';
+
+function parseCursor(cursor: string): { sortValue: string; videoId: string } {
+  const idx = cursor.lastIndexOf('::');
+  return {
+    sortValue: cursor.slice(0, idx),
+    videoId: cursor.slice(idx + 2),
+  };
+}
+
+function makeCursor(sortValue: string, videoId: string): string {
+  return `${sortValue}::${videoId}`;
+}
+
+const SORT_COLUMNS = {
+  publishedAt: videos.publishedAt,
+  title: videos.title,
+  channelTitle: channels.title,
+} as const;
+
+export async function getUnwatchedVideosPaginated(
+  userId: string,
+  limit: number,
+  options?: {
+    cursor?: string;
+    sortBy?: SortField;
+    sortDir?: SortDir;
+  },
+): Promise<PaginatedResult<UnwatchedVideoWithTags>> {
+  const { sortBy = 'publishedAt', sortDir = 'desc', cursor } = options ?? {};
+  const sortCol = SORT_COLUMNS[sortBy];
+  const dirFn = sortDir === 'asc' ? asc : desc;
+
+  const whereConditions: ReturnType<typeof and>[] = [
+    eq(channels.userId, userId),
+    isNull(watched.videoId),
+  ];
+
+  if (cursor) {
+    const { sortValue, videoId } = parseCursor(cursor);
+    whereConditions.push(
+      sortDir === 'asc'
+        ? sql`(${sortCol}, ${videos.id}) > (${sortValue}, ${videoId})`
+        : sql`(${sortCol}, ${videos.id}) < (${sortValue}, ${videoId})`,
+    );
+  }
+
+  const rows = await getDb()
+    .select({
+      id: videos.id,
+      channelId: videos.channelId,
+      title: videos.title,
+      description: videos.description,
+      thumbnail: videos.thumbnail,
+      publishedAt: videos.publishedAt,
+      duration: videos.duration,
+      viewCount: videos.viewCount,
+      categoryId: videos.categoryId,
+      fetchedAt: videos.fetchedAt,
+      channelTitle: channels.title,
+      tagId: tags.id,
+      tagName: tags.name,
+      tagColor: tags.color,
+    })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .leftJoin(watched, eq(watched.videoId, videos.id))
+    .leftJoin(channelTags, eq(channelTags.channelId, channels.id))
+    .leftJoin(tags, and(eq(channelTags.tagId, tags.id), isNull(tags.deletedAt)))
+    .where(and(...whereConditions))
+    .orderBy(dirFn(sortCol), dirFn(videos.id))
+    .limit(limit + 1);
+
+  const hasMore = rows.length > limit;
+  const pageRows = hasMore ? rows.slice(0, limit) : rows;
+
+  const videoMap = new Map<string, UnwatchedVideoWithTags>();
+  for (const row of pageRows) {
+    if (!videoMap.has(row.id)) {
+      videoMap.set(row.id, {
+        id: row.id,
+        channelId: row.channelId,
+        title: row.title,
+        description: row.description,
+        thumbnail: row.thumbnail,
+        publishedAt: row.publishedAt,
+        duration: row.duration,
+        viewCount: row.viewCount,
+        categoryId: row.categoryId,
+        fetchedAt: row.fetchedAt,
+        channelTitle: row.channelTitle,
+        tags: [],
+      });
+    }
+    if (row.tagId && row.tagName && row.tagColor) {
+      videoMap.get(row.id)!.tags.push({ id: row.tagId, name: row.tagName, color: row.tagColor });
+    }
+  }
+
+  const data = Array.from(videoMap.values());
+  let nextCursor: string | undefined;
+  if (hasMore) {
+    const last = pageRows[pageRows.length - 1];
+    const sortVal = sortBy === 'publishedAt'
+      ? last.publishedAt.toISOString()
+      : sortBy === 'channelTitle'
+        ? last.channelTitle
+        : last.title;
+    nextCursor = makeCursor(sortVal, last.id);
+  }
+
+  return { data, nextCursor, hasMore };
 }
 
 export function getTagsByUser(userId: string): Promise<Tag[]> {
