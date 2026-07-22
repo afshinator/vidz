@@ -3,7 +3,7 @@
 import { useState, useTransition, memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUp, ArrowDown, Check, ListPlus, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowUp, ArrowDown, Check, ListPlus, Loader2, CheckCircle2, ImageIcon, ImageMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/utils/time";
@@ -16,6 +16,9 @@ import type { UnwatchedVideoWithTags, PaginatedResult } from "@/lib/db/queries";
 import type { Tag } from "@/lib/db/schema";
 
 type SortField = "publishedAt" | "title" | "channelTitle";
+type ThumbSize = "sm" | "md" | "lg";
+
+const THUMB_SIZES: Record<ThumbSize, number> = { sm: 32, md: 64, lg: 96 };
 
 interface SortState {
   field: SortField;
@@ -75,17 +78,68 @@ function SortHeader({
   );
 }
 
+function ThumbSizeToggle({
+  size,
+  onChange,
+}: {
+  size: ThumbSize;
+  onChange: (s: ThumbSize) => void;
+}) {
+  return (
+    <div className="flex items-center border rounded-lg p-0.5 text-muted-foreground" role="radiogroup" aria-label="Thumbnail size">
+      <button
+        onClick={() => onChange("sm")}
+        role="radio"
+        aria-checked={size === "sm"}
+        aria-label="Extra small thumbnails"
+        className={cn(
+          "px-1.5 py-0.5 rounded text-[10px] transition-colors",
+          size === "sm" ? "bg-secondary text-foreground shadow-sm" : "hover:text-foreground",
+        )}
+      >
+        <ImageMinus className="h-3 w-3" />
+      </button>
+      <button
+        onClick={() => onChange("md")}
+        role="radio"
+        aria-checked={size === "md"}
+        aria-label="Small thumbnails"
+        className={cn(
+          "px-1.5 py-0.5 rounded text-[10px] transition-colors",
+          size === "md" ? "bg-secondary text-foreground shadow-sm" : "hover:text-foreground",
+        )}
+      >
+        <ImageIcon className="h-3 w-3" />
+      </button>
+      <button
+        onClick={() => onChange("lg")}
+        role="radio"
+        aria-checked={size === "lg"}
+        aria-label="Medium thumbnails"
+        className={cn(
+          "px-1.5 py-0.5 rounded text-[10px] transition-colors",
+          size === "lg" ? "bg-secondary text-foreground shadow-sm" : "hover:text-foreground",
+        )}
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 interface ListRowProps {
   video: UnwatchedVideoWithTags;
   allTags: Tag[];
+  thumbSize: ThumbSize;
   onRemove: (id: string) => void;
   onError: (msg: string) => void;
 }
 
-const ListRow = memo(function ListRow({ video, allTags, onRemove, onError }: ListRowProps) {
+const ListRow = memo(function ListRow({ video, allTags, thumbSize, onRemove, onError }: ListRowProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [wlState, setWlState] = useState<"idle" | "pending" | "done">("idle");
   const assignedTagIds = video.tags.map((t) => t.id);
+  const thumbW = THUMB_SIZES[thumbSize];
 
   const handleMarkWatched = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,23 +166,25 @@ const ListRow = memo(function ListRow({ video, allTags, onRemove, onError }: Lis
 
   return (
     <>
-      <div className="group flex items-center gap-3 border-b border-border/40 px-2 py-2 hover:bg-muted/30 transition-colors">
+      <div className="group flex items-center gap-3 border-b border-border/40 px-2 py-1.5 hover:bg-muted/30 transition-colors">
         {/* thumbnail */}
         <div
-          className="relative shrink-0 overflow-hidden rounded bg-muted cursor-pointer"
-          style={{ width: 64, aspectRatio: "16/9" }}
+          className="relative shrink-0 overflow-hidden rounded bg-muted cursor-pointer transition-transform duration-200 hover:z-10 hover:scale-150"
+          style={{ width: thumbW, aspectRatio: "16/9" }}
           onClick={() => setDialogOpen(true)}
         >
           {video.thumbnail ? (
-            <Image src={video.thumbnail} alt={video.title} fill className="object-cover" sizes="64px" />
+            <Image src={video.thumbnail} alt={video.title} fill className="object-cover" sizes={`${thumbW}px`} />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <div className="h-5 w-5 rounded-full bg-muted-foreground/20" />
+              <div className="h-3.5 w-3.5 rounded-full bg-muted-foreground/20" />
             </div>
           )}
-          <div className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 text-[9px] font-medium text-white tabular-nums">
-            {video.duration ? formatDuration(video.duration) : "0:00"}
-          </div>
+          {thumbSize !== "sm" && (
+            <div className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 text-[9px] font-medium text-white tabular-nums">
+              {video.duration ? formatDuration(video.duration) : "0:00"}
+            </div>
+          )}
         </div>
 
         {/* title */}
@@ -159,7 +215,7 @@ const ListRow = memo(function ListRow({ video, allTags, onRemove, onError }: Lis
         {/* tag */}
         <div className="w-8 shrink-0 flex justify-center">
           {video.channelId && (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e) => e.stopPropagation()} title="Tag channel">
               <TagAssignPopover
                 channelId={video.channelId}
                 allTags={allTags}
@@ -182,6 +238,7 @@ const ListRow = memo(function ListRow({ video, allTags, onRemove, onError }: Lis
             className="h-7 w-7 text-muted-foreground hover:text-green-500 focus-visible:ring-2 focus-visible:ring-ring"
             onClick={handleMarkWatched}
             aria-label="Mark as watched"
+            title="Mark as watched"
           >
             <Check className="h-3.5 w-3.5" />
           </Button>
@@ -192,6 +249,7 @@ const ListRow = memo(function ListRow({ video, allTags, onRemove, onError }: Lis
             disabled={wlState !== "idle"}
             onClick={handleAddToWatchlist}
             aria-label="Add to watchlist"
+            title="Add to watchlist"
           >
             {wlState === "pending" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -227,8 +285,10 @@ export function ListViewClient({ initialData, allTags }: ListViewClientProps) {
   const [sort, setSort] = useState<SortState>({ field: "publishedAt", dir: "desc" });
   const [loading, startLoad] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [thumbSize, setThumbSize] = useState<ThumbSize>("md");
 
   const clearError = () => setError(null);
+  const headerSpacer = THUMB_SIZES[thumbSize];
 
   const handleSort = (field: SortField) => {
     const next = nextSort(sort, field);
@@ -285,9 +345,14 @@ export function ListViewClient({ initialData, allTags }: ListViewClientProps) {
         </div>
       )}
 
+      {/* size toggle */}
+      <div className="flex items-center justify-end mb-2">
+        <ThumbSizeToggle size={thumbSize} onChange={setThumbSize} />
+      </div>
+
       {/* header */}
       <div className="flex items-center gap-3 border-b-2 border-border px-2 pb-2 mb-1 sticky top-[57px] bg-background/95 backdrop-blur-sm z-[5]">
-        <div style={{ width: 64 }} />
+        <div style={{ width: headerSpacer }} />
         <div className="flex-1 min-w-0">
           <SortHeader label="Title" field="title" sort={sort} onSort={handleSort} />
         </div>
@@ -306,7 +371,14 @@ export function ListViewClient({ initialData, allTags }: ListViewClientProps) {
         <p className="text-sm text-muted-foreground text-center py-12">No unwatched videos.</p>
       )}
       {videos.map((v) => (
-        <ListRow key={v.id} video={v} allTags={allTags} onRemove={handleRemove} onError={handleError} />
+        <ListRow
+          key={v.id}
+          video={v}
+          allTags={allTags}
+          thumbSize={thumbSize}
+          onRemove={handleRemove}
+          onError={handleError}
+        />
       ))}
 
       {/* load more */}
