@@ -140,6 +140,7 @@ const ListRow = memo(function ListRow({ video, allTags, thumbSize, onRemove, onE
   const [wlState, setWlState] = useState<"idle" | "pending" | "done">("idle");
   const assignedTagIds = video.tags.map((t) => t.id);
   const thumbW = THUMB_SIZES[thumbSize];
+  const hoverScale = 96 / thumbW; // ponytail: scale up to lg size (96px) on hover
 
   const handleMarkWatched = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -169,8 +170,10 @@ const ListRow = memo(function ListRow({ video, allTags, thumbSize, onRemove, onE
       <div className="group flex items-center gap-3 border-b border-border/40 px-2 py-1.5 hover:bg-muted/30 transition-colors">
         {/* thumbnail */}
         <div
-          className="relative shrink-0 overflow-hidden rounded bg-muted cursor-pointer transition-transform duration-200 hover:z-10 hover:scale-150"
-          style={{ width: thumbW, aspectRatio: "16/9" }}
+          className="relative shrink-0 overflow-hidden rounded bg-muted cursor-pointer transition-transform duration-200 hover:z-10"
+          style={{ width: thumbW, aspectRatio: "16/9", ["--hover-scale" as string]: hoverScale }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = `scale(${hoverScale})`; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; }}
           onClick={() => setDialogOpen(true)}
         >
           {video.thumbnail ? (
