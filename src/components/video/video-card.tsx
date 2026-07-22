@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { toggleWatched } from "@/actions/videos";
 import { VideoActionDialog } from "./video-action-dialog";
 import { VideoMeta } from "./video-meta";
+import { TagAssignPopover } from "@/components/topic/tag-assign-popover";
+import type { Tag as TagType } from "@/lib/db/schema";
 
 interface VideoCardProps {
 	video: {
@@ -21,11 +23,12 @@ interface VideoCardProps {
 		duration?: string | null;
 		viewCount?: number | null;
 		channelId?: string | null;
+		tags?: { id: string; name: string; color: string }[];
 	};
 	channelTitle?: string;
 	isWatched: boolean;
 	hasNote?: boolean;
-	onToggleWatched?: (videoId: string, watched: boolean) => void;
+	allTags?: TagType[];
 }
 
 export function VideoCard({
@@ -33,8 +36,11 @@ export function VideoCard({
 	channelTitle,
 	isWatched,
 	hasNote,
+	allTags,
 }: VideoCardProps) {
 	const [dialogOpen, setDialogOpen] = useState(false);
+	// ponytail: derive assignedTagIds from video.tags when available
+	const assignedTagIds = (video.tags ?? []).map((t) => t.id);
 
 	const handleToggle = async (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -107,6 +113,27 @@ export function VideoCard({
 							<Check className="h-3.5 w-3.5 text-white/70" />
 						)}
 					</Button>
+
+					{/* Tag channel button — slides in on hover, only when allTags provided */}
+					{video.channelId && allTags && (
+						<div
+							className={cn(
+								"absolute transition-all duration-150",
+								"opacity-0 group-hover/card:opacity-100",
+								hasNote ? "top-2 right-10" : "top-2 right-2",
+							)}
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+							}}
+						>
+							<TagAssignPopover
+								channelId={video.channelId}
+								allTags={allTags}
+								assignedTagIds={assignedTagIds}
+							/>
+						</div>
+					)}
 				</div>
 
 				{/* Metadata */}

@@ -18,11 +18,13 @@ import { bookCloseSound } from "@/lib/book-close";
 import { getSoundsEnabled, setSoundsEnabled } from "@/lib/utils/sound-prefs";
 import { ResizableAccordionContent } from "./resizable-accordion-content";
 import type { TagGroup } from "@/lib/utils/video-grouping";
+import type { Tag } from "@/lib/db/schema";
 
 interface DashboardAccordionProps {
 	tagGroups: TagGroup[];
 	notedVideoIds: string[];
 	totalUnwatched: number;
+	allTags: Tag[];
 }
 
 function SoundToggle({
@@ -53,6 +55,7 @@ export function DashboardAccordion({
 	tagGroups,
 	notedVideoIds,
 	totalUnwatched,
+	allTags,
 }: DashboardAccordionProps) {
 	const notedIds = new Set(notedVideoIds);
 
@@ -150,6 +153,7 @@ export function DashboardAccordion({
 										isWatched: false,
 										hasNote: notedIds.has(v.id),
 									}))}
+									allTags={allTags}
 								/>
 							</ResizableAccordionContent>
 						</AccordionPrimitive.Content>

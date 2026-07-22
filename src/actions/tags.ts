@@ -25,6 +25,7 @@ export async function assignTagToChannelAction(channelId: string, tagId: string)
   if (!session?.user?.id) throw new Error('Unauthorized');
   await assignTagToChannel(channelId, tagId);
   revalidatePath('/tags');
+  revalidatePath('/');
 }
 
 export async function removeTagFromChannelAction(channelId: string, tagId: string): Promise<void> {
@@ -32,4 +33,5 @@ export async function removeTagFromChannelAction(channelId: string, tagId: strin
   if (!session?.user?.id) throw new Error('Unauthorized');
   await removeTagFromChannel(channelId, tagId);
   revalidatePath('/tags');
+  revalidatePath('/');
 }

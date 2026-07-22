@@ -3,6 +3,7 @@
 import { VideoCard } from './video-card';
 import { VideoListItem } from './video-list-item';
 import { useViewMode } from './view-mode-context';
+import type { Tag } from '@/lib/db/schema';
 
 export interface GridVideo {
   id: string;
@@ -16,9 +17,16 @@ export interface GridVideo {
   channelTitle?: string;
   isWatched?: boolean;
   hasNote?: boolean;
+  tags?: { id: string; name: string; color: string }[];
 }
 
-export function VideoGrid({ videos }: { videos: GridVideo[] }) {
+export function VideoGrid({
+  videos,
+  allTags,
+}: {
+  videos: GridVideo[];
+  allTags?: Tag[];
+}) {
   const { viewMode } = useViewMode();
 
   if (viewMode === 'list') {
@@ -31,6 +39,7 @@ export function VideoGrid({ videos }: { videos: GridVideo[] }) {
             channelTitle={video.channelTitle}
             isWatched={video.isWatched ?? false}
             hasNote={video.hasNote}
+            allTags={allTags}
           />
         ))}
       </div>
@@ -46,6 +55,7 @@ export function VideoGrid({ videos }: { videos: GridVideo[] }) {
           channelTitle={video.channelTitle}
           isWatched={video.isWatched ?? false}
           hasNote={video.hasNote}
+          allTags={allTags}
         />
       ))}
     </div>

@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { toggleWatched } from "@/actions/videos";
 import { VideoActionDialog } from "./video-action-dialog";
 import { VideoMeta } from "./video-meta";
+import { TagAssignPopover } from "@/components/topic/tag-assign-popover";
+import type { Tag as TagType } from "@/lib/db/schema";
 
 interface VideoListItemProps {
 	video: {
@@ -19,10 +21,12 @@ interface VideoListItemProps {
 		duration?: string | null;
 		viewCount?: number | null;
 		channelId?: string | null;
+		tags?: { id: string; name: string; color: string }[];
 	};
 	channelTitle?: string;
 	isWatched: boolean;
 	hasNote?: boolean;
+	allTags?: TagType[];
 }
 
 export function VideoListItem({
@@ -30,8 +34,10 @@ export function VideoListItem({
 	channelTitle,
 	isWatched,
 	hasNote,
+	allTags,
 }: VideoListItemProps) {
 	const [dialogOpen, setDialogOpen] = useState(false);
+	const assignedTagIds = (video.tags ?? []).map((t) => t.id);
 
 	const handleToggle = async (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -91,6 +97,23 @@ export function VideoListItem({
 							<Check className="h-3 w-3 text-white/70" />
 						)}
 					</Button>
+
+					{/* Tag channel button — only when allTags provided */}
+					{video.channelId && allTags && (
+						<div
+							className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity duration-150"
+							onClick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+							}}
+						>
+							<TagAssignPopover
+								channelId={video.channelId}
+								allTags={allTags}
+								assignedTagIds={assignedTagIds}
+							/>
+						</div>
+					)}
 				</div>
 
 				{/* Metadata */}

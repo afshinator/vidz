@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import {
 	getNotedVideoIds,
 	getUnwatchedVideosWithChannelTags,
+	getTagsByUser,
 } from "@/lib/db/queries";
 import { groupByTag } from "@/lib/utils/video-grouping";
 
@@ -17,9 +18,10 @@ export default async function DashboardPage() {
 		redirect("/api/auth/signin");
 	}
 
-	const [allUnwatched, notedVideoIds] = await Promise.all([
+	const [allUnwatched, notedVideoIds, allTags] = await Promise.all([
 		getUnwatchedVideosWithChannelTags(session.user.id),
 		getNotedVideoIds(session.user.id),
+		getTagsByUser(session.user.id),
 	]);
 	const tagGroups = groupByTag(allUnwatched);
 	const totalUnwatched = allUnwatched.length;
@@ -38,6 +40,7 @@ export default async function DashboardPage() {
 						tagGroups={tagGroups}
 						notedVideoIds={notedVideoIds}
 						totalUnwatched={totalUnwatched}
+						allTags={allTags}
 					/>
 				) : (
 					<EmptyState
